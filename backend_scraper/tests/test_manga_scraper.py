@@ -60,7 +60,7 @@ def test_tcb_scans_scraper():
         full_link, href, chapter_value = scraper.scrape_manga("tcb_scans", "one_piece")
         assert full_link == "https://tcbscans.com/chapters/7565/one-piece-chapter-1101"
         assert href == "/chapters/7565/one-piece-chapter-1101"
-        assert chapter_value is None
+        assert chapter_value is Nonec
 
 def test_tcb_scans_scraper_failure():
     scraper = TcbScansScraper(manga_list)
