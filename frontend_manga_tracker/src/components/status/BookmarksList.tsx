@@ -23,8 +23,14 @@ export const BookmarksList: React.FC = () => {
               manga.status
             )}`}
           ></span>
-          <a href={manga.link} className="text-blue-600 hover:text-blue-800">
+          <a
+            href={manga.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 hover:text-blue-800"
+          >
             {manga.title}
+            {manga.lastUpdated}
           </a>
         </li>
       ))}
