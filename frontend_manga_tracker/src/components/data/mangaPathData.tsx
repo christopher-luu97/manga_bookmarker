@@ -1,0 +1,58 @@
+export const mangaPathData = [
+  {
+    id: 1,
+    title: "One Piece",
+    lastChecked: "2023-03-01",
+    link: "https://tcbscans.com/mangas/5/one-piece",
+    status: "Good",
+  },
+  {
+    id: 2,
+    title: "Battle Through The Heavens",
+    lastChecked: "2023-03-01",
+    link: "https://chapmanganato.com/manga-gv952204",
+    status: "Good",
+  },
+  {
+    id: 3,
+    title: "The Breaker 3 - Eternal Force",
+    lastChecked: "2023-03-01",
+    link: "https://flamecomics.com/series/the-breaker-3/",
+    status: "Good",
+  },
+  {
+    id: 4,
+    title: "Overgeared",
+    lastChecked: "2023-03-01",
+    link: "https://manga-demon.org/manga/Overgeared-VA45",
+    status: "Good",
+  },
+  {
+    id: 5,
+    title: "A Returners Magic Should be Special",
+    lastChecked: "2023-03-01",
+    link: "https://creepyscans.com/manga/a-returners-magic-should-be-special/",
+    status: "Good",
+  },
+  {
+    id: 6,
+    title: "Lookism",
+    lastChecked: "2023-03-01",
+    link: "https://www.webtoons.com/en/drama/lookism/list?title_no=1049",
+    status: "Good",
+  },
+  {
+    id: 7,
+    title: "The Chronicles of the Heavenly Demon",
+    lastChecked: "2023-03-1",
+    link: "https://luminousscans.net/series/1702713601-heavenly-demon-chronicles/",
+    status: "Good",
+  },
+  {
+    id: 8,
+    title: "Reincarnation of the Suicidal Battle God",
+    lastChecked: "2023-03-1",
+    link: "https://asuratoon.com/manga/7827014947-reincarnation-of-the-suicidal-battle-god/",
+    status: "Good",
+  },
+];
