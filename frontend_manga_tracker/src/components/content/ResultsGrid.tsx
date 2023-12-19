@@ -24,7 +24,7 @@ export const ResultsGrid: React.FC = () => {
         {mangaData.slice(0, visibleItems).map((manga) => (
           <div
             key={manga.id}
-            className="border border-gray-200 shadow-sm rounded-lg overflow-hidden"
+            className="border border-gray-200 shadow-sm rounded-lg overflow-hidden transform transition duration-300 ease-in-out hover:scale-105"
           >
             <a
               href={manga.link}
@@ -40,7 +40,9 @@ export const ResultsGrid: React.FC = () => {
                 />
               </div>
               <div className="text-center p-2">
-                <p>{manga.title}</p>
+                <p className="transition duration-300 ease-in-out hover:text-blue-500">
+                  {manga.title}
+                </p>
                 <p>{manga.chapter}</p>
                 <p>{manga.lastUpdated}</p>
               </div>
