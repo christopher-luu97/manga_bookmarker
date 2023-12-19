@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { GenreFilter } from "./filters/GenreFilter";
 import { TypeFilter } from "./filters/TypeFilter";
 import { OrderFilter } from "./filters/OrderFilter";
@@ -6,8 +6,24 @@ import { SearchBar } from "./filters/SearchBar";
 import { EditButton } from "./content/EditButton";
 import { ResultsGrid } from "./content/ResultsGrid";
 import { BookmarksList } from "./status/BookmarksList";
+import { Modal } from "./modal/Modal";
 
 export const ApplicationContent: React.FC = () => {
+  const [isModalOpen, setModalOpen] = useState(false);
+
+  const handleEditButtonClick = () => {
+    setModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalOpen(false);
+  };
+
+  const handleSelectItem = (id: number) => {
+    // Logic to handle item selection for edit
+    console.log("Selected item with id:", id);
+    // You can add or delete the item from the list here
+  };
   return (
     <div className="p-4">
       {/* Top row for filters and search */}
@@ -16,7 +32,10 @@ export const ApplicationContent: React.FC = () => {
         <TypeFilter />
         <OrderFilter />
         <SearchBar />
-        <EditButton />
+        <EditButton onClick={handleEditButtonClick} />
+        {isModalOpen && (
+          <Modal onClose={handleCloseModal} onSelect={handleSelectItem} />
+        )}
       </div>
 
       {/* Main content area */}
