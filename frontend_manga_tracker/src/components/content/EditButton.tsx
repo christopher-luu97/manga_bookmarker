@@ -5,7 +5,7 @@ export const EditButton: React.FC<{ onClick: () => void }> = ({ onClick }) => {
   return (
     <button
       onClick={onClick}
-      className="p-2 border border-gray-300 rounded bg-blue-500 text-white"
+      className="hidden md:inline-block p-2 border border-gray-300 rounded bg-blue-500 text-white"
     >
       Edit
     </button>
