@@ -7,8 +7,10 @@ import { EditButton } from "./content/EditButton";
 import { ResultsGrid } from "./content/ResultsGrid";
 import { BookmarksList } from "./status/BookmarksList";
 import { Modal } from "./modal/Modal";
+import { mangaPathData as initialMangaData } from "./data/mangaPathData";
 
 export const ApplicationContent: React.FC = () => {
+  const [mangaData, setMangaData] = useState(initialMangaData);
   const [isModalOpen, setModalOpen] = useState(false);
 
   const handleEditButtonClick = () => {
@@ -19,11 +21,10 @@ export const ApplicationContent: React.FC = () => {
     setModalOpen(false);
   };
 
-  const handleSelectItem = (id: number) => {
-    // Logic to handle item selection for edit
-    console.log("Selected item with id:", id);
-    // You can add or delete the item from the list here
+  const handleUpdateData = (newData: any[]) => {
+    setMangaData(newData);
   };
+
   return (
     <div className="p-4">
       {/* Top row for filters and search */}
@@ -34,7 +35,11 @@ export const ApplicationContent: React.FC = () => {
         <SearchBar />
         <EditButton onClick={handleEditButtonClick} />
         {isModalOpen && (
-          <Modal onClose={handleCloseModal} onSelect={handleSelectItem} />
+          <Modal
+            mangaData={mangaData}
+            onUpdate={handleUpdateData}
+            onClose={handleCloseModal}
+          />
         )}
       </div>
 
