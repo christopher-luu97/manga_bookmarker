@@ -1,5 +1,4 @@
 import React from "react";
-import { mangaData } from "../data/mangaData";
 import { websiteData } from "../data/websiteData";
 import { mangaPathData } from "../data/mangaPathData";
 import { getStatusColor } from "./statusColour";
