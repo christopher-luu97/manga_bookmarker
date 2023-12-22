@@ -30,4 +30,6 @@ Git Workflow:
 
 ## DB Schema to be built
 
-[Alt text](/assets/images/20231222_db_schema_v1.PNG?raw=true "DB Schema")
+<div align="center">
+    <img src="/assets/images/20231222_db_schema_v1.PNG?raw=true" width="400px"</img> 
+</div>
