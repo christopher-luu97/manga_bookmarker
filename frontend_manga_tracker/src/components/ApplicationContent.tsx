@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { GenreFilter } from "./filters/GenreFilter";
 import { TypeFilter } from "./filters/TypeFilter";
 import { OrderFilter } from "./filters/OrderFilter";
@@ -6,8 +6,25 @@ import { SearchBar } from "./filters/SearchBar";
 import { EditButton } from "./content/EditButton";
 import { ResultsGrid } from "./content/ResultsGrid";
 import { BookmarksList } from "./status/BookmarksList";
+import { Modal } from "./modal/Modal";
+import { mangaPathData as initialMangaData } from "./data/mangaPathData";
 
 export const ApplicationContent: React.FC = () => {
+  const [mangaData, setMangaData] = useState(initialMangaData);
+  const [isModalOpen, setModalOpen] = useState(false);
+
+  const handleEditButtonClick = () => {
+    setModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalOpen(false);
+  };
+
+  const handleUpdateData = (newData: any[]) => {
+    setMangaData(newData);
+  };
+
   return (
     <div className="p-4">
       {/* Top row for filters and search */}
@@ -16,7 +33,14 @@ export const ApplicationContent: React.FC = () => {
         <TypeFilter />
         <OrderFilter />
         <SearchBar />
-        <EditButton />
+        <EditButton onClick={handleEditButtonClick} />
+        {isModalOpen && (
+          <Modal
+            mangaData={mangaData}
+            onUpdate={handleUpdateData}
+            onClose={handleCloseModal}
+          />
+        )}
       </div>
 
       {/* Main content area */}

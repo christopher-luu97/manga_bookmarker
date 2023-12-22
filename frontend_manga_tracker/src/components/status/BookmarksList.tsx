@@ -2,19 +2,9 @@ import React from "react";
 import { mangaData } from "../data/mangaData";
 import { websiteData } from "../data/websiteData";
 import { mangaPathData } from "../data/mangaPathData";
+import { getStatusColor } from "./statusColour";
 
 export const BookmarksList: React.FC = () => {
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Good":
-        return "bg-green-500";
-      case "Down":
-        return "bg-red-500";
-      default:
-        return "bg-gray-500";
-    }
-  };
-
   return (
     <div className="border border-gray-200 shadow-xl rounded-lg p-4 bg-white">
       {/* Supported Websites Section */}

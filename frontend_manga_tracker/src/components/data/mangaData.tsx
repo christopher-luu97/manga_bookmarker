@@ -13,7 +13,7 @@ export const mangaData = [
   },
   {
     id: 2,
-    title: "One Piece",
+    title: "One Piece 1",
     chapter: "Chapter 10",
     lastUpdated: "2023-03-01",
     imageUrl: "https://m.media-amazon.com/images/I/91CN0HstfNL._SY466_.jpg",
@@ -22,7 +22,7 @@ export const mangaData = [
   },
   {
     id: 3,
-    title: "Overgeared 1",
+    title: "Overgeared 2",
     chapter: "Chapter 10",
     lastUpdated: "2023-03-01",
     imageUrl:
@@ -32,7 +32,7 @@ export const mangaData = [
   },
   {
     id: 4,
-    title: "One Piece",
+    title: "One Piece 2",
     chapter: "Chapter 10",
     lastUpdated: "2023-03-01",
     imageUrl: "https://m.media-amazon.com/images/I/91CN0HstfNL._SY466_.jpg",
@@ -41,7 +41,7 @@ export const mangaData = [
   },
   {
     id: 5,
-    title: "Overgeared 1",
+    title: "Overgeared 3",
     chapter: "Chapter 10",
     lastUpdated: "2023-03-01",
     imageUrl:
@@ -51,7 +51,7 @@ export const mangaData = [
   },
   {
     id: 6,
-    title: "One Piece",
+    title: "One Piece 3",
     chapter: "Chapter 10",
     lastUpdated: "2023-03-01",
     imageUrl: "https://m.media-amazon.com/images/I/91CN0HstfNL._SY466_.jpg",
@@ -60,7 +60,7 @@ export const mangaData = [
   },
   {
     id: 7,
-    title: "Overgeared 1",
+    title: "Overgeared 4",
     chapter: "Chapter 10",
     lastUpdated: "2023-03-01",
     imageUrl:
@@ -70,7 +70,7 @@ export const mangaData = [
   },
   {
     id: 8,
-    title: "One Piece",
+    title: "One Piece 4",
     chapter: "Chapter 10",
     lastUpdated: "2023-03-01",
     imageUrl: "https://m.media-amazon.com/images/I/91CN0HstfNL._SY466_.jpg",
@@ -79,7 +79,7 @@ export const mangaData = [
   },
   {
     id: 9,
-    title: "Overgeared 1",
+    title: "Overgeared 5",
     chapter: "Chapter 10",
     lastUpdated: "2023-03-01",
     imageUrl:
@@ -89,7 +89,7 @@ export const mangaData = [
   },
   {
     id: 10,
-    title: "One Piece",
+    title: "One Piece 5",
     chapter: "Chapter 10",
     lastUpdated: "2023-03-01",
     imageUrl: "https://m.media-amazon.com/images/I/91CN0HstfNL._SY466_.jpg",
@@ -98,7 +98,7 @@ export const mangaData = [
   },
   {
     id: 11,
-    title: "Overgeared 1",
+    title: "Overgeared 6",
     chapter: "Chapter 10",
     lastUpdated: "2023-03-01",
     imageUrl:
@@ -108,7 +108,7 @@ export const mangaData = [
   },
   {
     id: 12,
-    title: "One Piece",
+    title: "One Piece 6",
     chapter: "Chapter 10",
     lastUpdated: "2023-03-01",
     imageUrl: "https://m.media-amazon.com/images/I/91CN0HstfNL._SY466_.jpg",
