@@ -1,3 +1,11 @@
+System Process
+
+1. Backend CRON job calls Python script to scrape data into database
+2. Database gets updated from CRON web scrape
+3. User gets notified of latest changes in email
+4. User browses to website and logs in
+5. User can now observes latest changes
+
 Project Workflow:
 
 1. Track features, issues etc. using Github projects
