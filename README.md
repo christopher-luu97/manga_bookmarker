@@ -31,5 +31,5 @@ Git Workflow:
 ## DB Schema to be built
 
 <div align="center">
-    <img src="/assets/images/20231222_db_schema_v1.PNG?raw=true" width="400px"</img> 
+    <img src="/assets/images/20231222_db_schema_v1.PNG?raw=true"</img> 
 </div>
