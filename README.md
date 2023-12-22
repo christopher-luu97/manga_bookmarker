@@ -27,3 +27,7 @@ Git Workflow:
 6. Review
 7. Merge if okay
 8. Resolve ticket in github projects and add comment pointing to the PR of interest
+
+## DB Schema to be built
+
+[Alt text](/assets/images/20231222_db_schema_v1.PNG?raw=true "DB Schema")
