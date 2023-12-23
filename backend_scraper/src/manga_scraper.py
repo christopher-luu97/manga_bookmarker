@@ -105,7 +105,7 @@ class MangaScraper:
             Tuple[Optional[str], Optional[str], str]: Returns parsed data or error message.
         """
         raise NotImplementedError("Subclasses should implement this method")
-    
+
 
 
 class TcbScansScraper(MangaScraper):
@@ -182,6 +182,30 @@ class MangaKakalotScraper(MangaScraper):
                 return {"genres": genres}
 
         return {"genres": []}
+    
+    def find_manga_link(self, search_string:str, search_query:str) -> Optional[str]:
+        """
+        Find the manga link with a title matching the query_string in the provided BeautifulSoup object.
+
+        Args:
+            soup (bs4.BeautifulSoup): BeautifulSoup object of the parsed HTML content.
+            query_string (str): The query string to match (case-insensitive).
+
+        Returns:
+            Optional[str]: The URL of the manga if found, None otherwise.
+        """
+        response = requests.get(search_string)
+
+        if response.status_code == 200:
+            soup = bs4.BeautifulSoup(response.content, 'html.parser')
+
+        item_right = soup.find('div', class_='item-right')
+        if item_right:
+            links = item_right.find_all('a', class_='a-h text-nowrap item-title')
+            for link in links:
+                if link.get('title', '').lower() == search_query.lower():
+                    return link.get('href')
+        return None
 
 
 class MangaDemonScraper(MangaScraper):
