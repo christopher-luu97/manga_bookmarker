@@ -245,6 +245,59 @@ class MangaDemonScraper(MangaScraper):
             return None, None, '<li> tag not found'
 
         return None, None, '<ul> tag with class "chapter-list" not found'
+    
+class vizScraper(MangaScraper):
+    def parse_html(self, soup: bs4.BeautifulSoup, base_url: str, complete_url: str) -> Tuple[str | None, str | None, str]:
+        """
+        Parses the HTML content from the Viz website to find the first href within the 'chpt_rows' div.
+
+        Args:
+            soup (bs4.BeautifulSoup): Parsed HTML content.
+            base_url (str): Base URL of the Viz website.
+            complete_url (str): Complete URL of the manga page.
+
+        Returns:
+            Tuple[str | None, str | None, str]: The most recent URL (None if not found),
+            the href (None if not found), and the chapter value or an error message.
+        """
+        chpt_rows_div = soup.find('div', id='chpt_rows')
+        if chpt_rows_div:
+            first_link = chpt_rows_div.find('a', href=True)
+            if first_link:
+                href = first_link.get('href')
+                most_recent_url = self.normalize_url(base_url + href)
+                chapter_value = self.extract_last_part(most_recent_url)
+                return most_recent_url, href, chapter_value
+            else:
+                return None, None, 'No link found in the specified div'
+        else:
+            return None, None, 'Div with id "chpt_rows" not found'
+
+
+class webtoonScraper(MangaScraper):
+    def parse_html(self, soup: bs4.BeautifulSoup, base_url: str, complete_url: str) -> Tuple[str | None, str | None, str]:
+        """
+        Parses the HTML content from the Webtoon website to find the first href within the 'ul' with id '_listUl'.
+
+        Args:
+            soup (bs4.BeautifulSoup): Parsed HTML content.
+            base_url (str): Base URL of the Webtoon website.
+            complete_url (str): Complete URL of the manga page.
+
+        Returns:
+            Tuple[str | None, str | None, str]: The most recent URL (None if not found),
+            the href (None if not found), and the chapter value or an error message.
+        """
+        list_ul = soup.find('ul', id='_listUl')
+        if list_ul:
+            first_link = list_ul.find('a', href=True)
+            if first_link:
+                href = first_link.get('href')
+                return href, None, "Success"
+            else:
+                return None, None, 'No link found in the specified ul'
+        else:
+            return None, None, 'Ul with id "_listUl" not found'
 
 ## Example usage
 # manga_list = {
