@@ -1,6 +1,7 @@
 import bs4
 import requests
 import re
+import time
 
 from typing import Optional, List, Dict, Union, Any, Tuple
 
@@ -247,6 +248,10 @@ class MangaDemonScraper(MangaScraper):
         return None, None, '<ul> tag with class "chapter-list" not found'
     
 class vizScraper(MangaScraper):
+    def __init__(self, manga_list: List[dict]):
+        super().__init__(manga_list)
+        self.base_url = "https://www.viz.com/"
+
     def parse_html(self, soup: bs4.BeautifulSoup, base_url: str, complete_url: str) -> Tuple[str | None, str | None, str]:
         """
         Parses the HTML content from the Viz website to find the first href within the 'chpt_rows' div.
@@ -267,11 +272,112 @@ class vizScraper(MangaScraper):
                 href = first_link.get('href')
                 most_recent_url = self.normalize_url(base_url + href)
                 chapter_value = self.extract_last_part(most_recent_url)
-                return most_recent_url, href, chapter_value
+                return (most_recent_url, href, chapter_value)
             else:
                 return None, None, 'No link found in the specified div'
         else:
             return None, None, 'Div with id "chpt_rows" not found'
+        
+
+    def extract_name(self, url:str):
+        """
+        Viz manga always has name at the end
+
+        Args:
+            url (str): _description_
+
+        Returns:
+            _type_: _description_
+        """
+        # Regular expression to extract the part after the last '/'
+        match = re.search(r'/([^/]*)/?$', url)
+        
+        if match:
+            # Extract the matched part and replace '-' with ' '
+            result = match.group(1).replace('-', ' ')
+            return result
+        else:
+            return "No match found"
+    
+    def extract_manga_path(self, url:str):
+        """
+        Extract manga path from url. 
+        
+
+        Args:
+            url (str): _description_
+
+        Returns:
+            _type_: _description_
+        """
+        # Regular expression to extract everything after '.com'
+        match = re.search(r'\.com(.*)', url)
+        
+        if match:
+            # Extract the matched part
+            return match.group(1)
+        else:
+            return "No match found"
+
+    def extract_latest_chapter(self, url:str):
+        """
+        Grab the link to the latest chapter
+
+        Args:
+            url (str): _description_
+        """
+        response = requests.get(url)
+        if response.status_code == 200:
+            soup = bs4.BeautifulSoup(response.content, 'html.parser')
+            return self.parse_html(soup, self.base_url, url), response.status_code
+    
+    ##TODO: Page number on viz is rendered dynamically through JS which can't be fetched with bs4 or requests
+    def extract_chapter_length(self, url:str):
+        """
+        URL comes from latest_chapter in parse_html_obj[0] from self.extract_latest_chapter
+
+        Args:
+            url (_type_): _description_
+        """
+         # Parse the HTML content
+        soup = bs4.BeautifulSoup(url, 'html.parser')
+        
+        # Find the <div> with the specific class
+        div = soup.find('div', class_='page_slider_label left')
+        
+        if div:
+            # Extract the text from the <div>
+            text = div.get_text().strip()
+            
+            # Use regular expression to find the integer
+            match = re.search(r'\d+', text)
+            if match:
+                return int(match.group(0))
+            else:
+                return "No integer found in the text"
+        else:
+            return "Div not found"
+        
+    def create_record(self, url:str) -> Dict:
+        """
+        This method is used for first time additions of new manga.
+
+        Args:
+            url (str): _description_
+
+        Returns:
+            _type_: _description_
+        """
+        parse_html_obj, response_code = self.extract_latest_chapter(url)
+        record = {
+            "manga_name": self.extract_name(url), # Get the manga name
+            "manga_path": self.extract_manga_path(url),
+            "chapter_url": parse_html_obj[0],
+            "date_checked":time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())), # Convert epoch time to ymdhms
+            "number_of_pages":self.extract_chapter_length(parse_html_obj[0]),
+            "chapter_url_status":response_code
+        }
+        return record
 
 
 class webtoonScraper(MangaScraper):
