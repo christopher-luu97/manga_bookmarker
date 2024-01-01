@@ -118,6 +118,38 @@ class MangaScraper:
         Returns:
             _type_: _description_
         """
+        response = requests.get(url)
+        if response.status_code == 200:
+            soup = bs4.BeautifulSoup(response.content, 'html.parser')
+            # Navigate to the div with the class 'story-info-left'
+            div_tag = soup.find('div', class_='story-info-left')
+            if div_tag:
+                # Find the img tag within the nested span
+                image_tag = div_tag.find('span', class_='info-image').find('img')
+                if 'src' in image_tag.attrs:
+                    return image_tag.attrs['src']
+                else:
+                    return "Image or src attribute not found"
+            else:
+                return "Div with specified class not found"
+        else:
+            return f"Failed to retrieve webpage, status code: {response.status_code}"
+    
+
+    def create_record(self,url:str) -> Dict:
+        """
+        Method to create the dataset required for database insertion
+
+        Args:
+            url (str): Main manga link
+
+        Raises:
+            NotImplementedError: _description_
+
+        Returns:
+            Dict: Object containing the data object to be inserted into the database
+        """
+        raise NotImplementedError("Subclasses should implement this method")
 
 
 
@@ -373,6 +405,7 @@ class vizScraper(MangaScraper):
     def create_record(self, url:str) -> Dict:
         """
         This method is used for first time additions of new manga.
+        Each record will contain all the data required for database insertion
 
         Args:
             url (str): _description_
@@ -387,7 +420,8 @@ class vizScraper(MangaScraper):
             "chapter_url": parse_html_obj[0],
             "date_checked":time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())), # Convert epoch time to ymdhms
             "number_of_pages":self.extract_chapter_length(parse_html_obj[0]),
-            "chapter_url_status":response_code
+            "chapter_url_status":response_code,
+            "manga_thumbnail_url": self.extract_thumbnail(url)
         }
         return record
 
