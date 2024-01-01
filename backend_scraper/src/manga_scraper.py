@@ -107,6 +107,18 @@ class MangaScraper:
         """
         raise NotImplementedError("Subclasses should implement this method")
 
+    def extract_thumbnail(self, url:str):
+        """
+        Method to extract thumbnail from MangaKakalot if it exists.
+        Method can be overriden by inheriting classes if thumbnails exists that we can scrape
+
+        Args:
+            url (str): _description_
+
+        Returns:
+            _type_: _description_
+        """
+
 
 
 class TcbScansScraper(MangaScraper):
@@ -378,6 +390,27 @@ class vizScraper(MangaScraper):
             "chapter_url_status":response_code
         }
         return record
+
+    def extract_thumbnail(self, url:str):
+        """
+        Extract the thumbnail from the website
+
+        Args:
+            url (str): string url of the website
+
+        Returns:
+            _type_: _description_
+        """
+        response = requests.get(url)
+        if response.status_code == 200:
+            soup = bs4.BeautifulSoup(response.content, 'html.parser')
+            image_tag = soup.find('img', class_='o_hero-media')
+            if 'src' in image_tag.attrs.keys():
+                return image_tag.attrs['src']
+            else:
+                return "Image or src attribute not found"
+        else:
+            return f"Failed to retrieve webpage, status code: {response.status_code}"
 
 
 class webtoonScraper(MangaScraper):
