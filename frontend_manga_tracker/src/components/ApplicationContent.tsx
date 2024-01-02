@@ -1,7 +1,4 @@
 import React, { useState } from "react";
-import { GenreFilter } from "./filters/GenreFilter";
-import { TypeFilter } from "./filters/TypeFilter";
-import { OrderFilter } from "./filters/OrderFilter";
 import { SearchBar } from "./filters/SearchBar";
 import { EditButton } from "./content/EditButton";
 import { ResultsGrid } from "./content/ResultsGrid";
@@ -29,9 +26,11 @@ export const ApplicationContent: React.FC = () => {
     <div className="p-4">
       {/* Top row for filters and search */}
       <div className="flex flex-wrap gap-4 mb-4">
-        <GenreFilter />
+        {/* TODO Genre, Type, Order Filters */}
+
+        {/* <GenreFilter />
         <TypeFilter />
-        <OrderFilter />
+        <OrderFilter /> */}
         <SearchBar />
         <EditButton onClick={handleEditButtonClick} />
         {isModalOpen && (
@@ -43,14 +42,11 @@ export const ApplicationContent: React.FC = () => {
         )}
       </div>
 
-      {/* Main content area */}
       <div className="flex flex-col md:flex-row gap-4 md:gap-8">
-        {/* Results Grid */}
         <div className="flex-grow md:w-2/3">
           <ResultsGrid />
         </div>
 
-        {/* Bookmarked websites list */}
         <div className="md:w-1/3">
           <BookmarksList />
         </div>
