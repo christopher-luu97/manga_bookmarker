@@ -176,6 +176,9 @@ class TcbScansScraper(MangaScraper):
         else:
             return None, None, 'Tag not found'
     
+    def create_record(self, url: str) -> Dict:
+        return super().create_record(url)
+    
         
 class MangaKakalotScraper(MangaScraper):
     def parse_html(self, soup: bs4.BeautifulSoup, base_url: str, complete_url: str) -> Tuple[Optional[str], Optional[str], str]:
@@ -252,6 +255,9 @@ class MangaKakalotScraper(MangaScraper):
                     return link.get('href')
         return None
 
+    def create_record(self, url: str) -> Dict:
+        return super().create_record(url)
+
 
 class MangaDemonScraper(MangaScraper):
     def parse_html(self, soup: bs4.BeautifulSoup, base_url: str, complete_url: str) -> Tuple[Optional[str], Optional[str], str]:
@@ -290,6 +296,9 @@ class MangaDemonScraper(MangaScraper):
             return None, None, '<li> tag not found'
 
         return None, None, '<ul> tag with class "chapter-list" not found'
+
+    def create_record(self, url: str) -> Dict:
+        return super().create_record(url)
     
 class vizScraper(MangaScraper):
     def __init__(self, manga_list: List[dict]):
@@ -528,36 +537,6 @@ class webtoonScraper(MangaScraper):
             soup = bs4.BeautifulSoup(response.content, 'html.parser')
             return self.parse_html(soup, self.base_url, url), response.status_code
     
-    ##TODO: Page number on viz is rendered dynamically through JS which can't be fetched with bs4 or requests
-    def extract_chapter_length(self, url:str):
-        """
-        URL comes from latest_chapter in parse_html_obj[0] from self.extract_latest_chapter
-
-        Args:
-            url (_type_): _description_
-        """
-        # For now set fix to false as we need logic to identify page numbers from a webtoon
-        fix = False
-        if fix:
-            soup = bs4.BeautifulSoup(url, 'html.parser')
-            
-            # Find the <div> with the specific class
-            div = soup.find('div', class_='page_slider_label left')
-            
-            if div:
-                # Extract the text from the <div>
-                text = div.get_text().strip()
-                
-                # Use regular expression to find the integer
-                match = re.search(r'\d+', text)
-                if match:
-                    return int(match.group(0))
-                else:
-                    return "No integer found in the text"
-            else:
-                return "Div not found"
-        return 0 # placeholder
-    
     def create_record(self, url:str) -> Dict:
         """
         This method is used for first time additions of new manga.
@@ -575,7 +554,8 @@ class webtoonScraper(MangaScraper):
             "chapter_url": parse_html_obj[0],
             "date_checked":time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())), # Convert epoch time to ymdhms
             "number_of_pages":self.extract_chapter_length(parse_html_obj[0]),
-            "chapter_url_status":response_code
+            "chapter_url_status":response_code,
+            "manga_thumbnail_url": self.extract_thumbnail(url)
         }
         return record
 
