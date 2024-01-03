@@ -2,6 +2,7 @@ import bs4
 import requests
 import re
 import time
+from urllib.parse import urlparse
 
 from typing import Optional, List, Dict, Union, Any, Tuple
 
@@ -53,6 +54,28 @@ class MangaScraper:
         website_url = self.manga_list[website_name]["url"]
         manga_url = self.manga_list[website_name]["manga_paths"][manga_name]
         return website_url, manga_url
+
+    @staticmethod
+    def get_base_url(url:str) -> str:
+        """
+        Get the base URL from a website.
+
+        Args:
+            url (str): URL of input website
+
+        Returns:
+            base_url (str): Base url of the input website
+        
+        Example usage
+        url1 = "https://chat.openai.com/c/ac154504-d217-4ed1-b4c3-0db4cee603a2"
+        url2 = "https://anaconda.org/anaconda/psycopg2"
+
+        print(get_base_url(url1))  # Output: https://chat.openai.com
+        print(get_base_url(url2))  # Output: https://anaconda.org
+        """
+        parsed_url = urlparse(url)
+        base_url = f"{parsed_url.scheme}://{parsed_url.netloc}"
+        return base_url
 
     def normalize_url(self,url:str) -> str:
         """

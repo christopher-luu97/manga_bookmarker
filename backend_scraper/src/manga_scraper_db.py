@@ -6,13 +6,13 @@ import json
 from psycopg2 import OperationalError
 
 
-class MangaScraperAPI:
+class MangaScraperDB:
     """
     Class that connects and performs insertions to the database hosted on PostgreSQL
     """
     def __init__(self):
         try:
-            credentials = self.read_db_credentials("db_config.json")
+            credentials = self.read_db_credentials("/secrets/db_config.json") ## To change into environ reading
             self.conn = psycopg2.connect(
                 host=credentials["host"],
                 database=credentials["database"],

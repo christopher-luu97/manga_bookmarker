@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { getStatusColor } from "../status/statusColour";
+import axios from "axios";
 
 export const Modal: React.FC<{
   mangaData: any[];
@@ -10,33 +11,47 @@ export const Modal: React.FC<{
   const [newLink, setNewLink] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
+  const handleConfirm = async () => {
+    console.log(draftData);
+    try {
+      const response = await axios.post("http://127.0.0.1:8000/", {
+        manga_records: draftData,
+      });
+      if (response.data) {
+        setSuccessMessage(
+          `Changes confirmed successfully! URL: ${response.data.url}, Confirmation: ${response.data.confirmation}`
+        );
+        onUpdate(draftData);
+      }
+    } catch (error) {
+      console.error("Error confirming changes:", error);
+      setSuccessMessage("Failed to confirm changes");
+    }
+    setTimeout(() => setSuccessMessage(""), 3000);
+    console.log(successMessage);
+  };
+
   const handleAdd = () => {
     const newData = {
-      id: Date.now(),
-      title: "New Manga",
-      chapter: "Chapter 1",
-      lastUpdated: new Date().toISOString(),
-      imageUrl: "",
+      id: `new_${Date.now()}`,
+      lastChecked: new Date().toISOString(),
       link: newLink,
       status: "Good",
+      title: "New Manga",
     };
     setDraftData([...draftData, newData]);
+    console.log(draftData);
   };
 
   const handleDelete = (id: number) => {
     setDraftData(draftData.filter((item) => item.id !== id));
   };
 
-  const handleConfirm = () => {
-    onUpdate(draftData);
-    setSuccessMessage("Changes confirmed successfully!");
-    setTimeout(() => setSuccessMessage(""), 3000); // Clear message after 3 seconds
-  };
-
   const handleDiscard = () => {
     setDraftData([...mangaData]);
     setSuccessMessage("Changes discarded!");
     setTimeout(() => setSuccessMessage(""), 3000); // Clear message after 3 seconds
+    console.log(draftData);
   };
 
   return (
