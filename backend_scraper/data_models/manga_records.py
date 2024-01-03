@@ -3,7 +3,7 @@
 from pydantic import BaseModel
 
 class MangaRecord(BaseModel):
-    id: int
+    id: str
     lastChecked: str
     link: str
     status: str
