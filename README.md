@@ -33,3 +33,18 @@ Git Workflow:
 <div align="center">
     <img src="/assets/images/20231222_db_schema_v1.PNG?raw=true"</img> 
 </div>
+
+## Fixes
+
+### API Stuff
+
+- Created test_app.py as the test API for the following processes below:
+- Frontend Modal currently submits entire table which is okay, we just need a way to confirm the additions and deletions when sent to API
+- Test DB Insertions
+- Setup API to accept and parse specific data format which can then be passed into the processing + database operations
+- Database tables should have history so when we inner join on the new records, we maintain a history of everything for rollback
+- Frontend modal reads from DB specific columns and data
+  - We need to also read in the ID but hide it from the user, this will be used for the user
+    - When sent to API, we can then filter on missing ID's or NA ID's these we know will remove (missing) or add new (NA ID)
+      - This also will update all other records if needed
+        - So there is no need for an "Delete" or "Update" API. We only need a single process
