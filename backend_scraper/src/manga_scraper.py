@@ -453,7 +453,8 @@ class vizScraper(MangaScraper):
             "date_checked":time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())), # Convert epoch time to ymdhms
             "number_of_pages":self.extract_chapter_length(parse_html_obj[0]),
             "chapter_url_status":response_code,
-            "manga_thumbnail_url": self.extract_thumbnail(url)
+            "manga_thumbnail_url": self.extract_thumbnail(url),
+            "website_url": self.get_base_url(parse_html_obj[0])
         }
         return record
 
@@ -578,7 +579,8 @@ class webtoonScraper(MangaScraper):
             "date_checked":time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())), # Convert epoch time to ymdhms
             "number_of_pages":self.extract_chapter_length(parse_html_obj[0]),
             "chapter_url_status":response_code,
-            "manga_thumbnail_url": self.extract_thumbnail(url)
+            "manga_thumbnail_url": self.extract_thumbnail(url),
+            "website_url": self.get_base_url(parse_html_obj[0])
         }
         return record
 
