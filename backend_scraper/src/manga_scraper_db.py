@@ -1,7 +1,7 @@
 import psycopg2
 import uuid
 from datetime import datetime
-from typing import Dict
+from typing import Dict, List, Any
 import json
 from psycopg2 import OperationalError
 
@@ -151,7 +151,7 @@ class MangaScraperDB:
         manga_chapter_url_id = str(uuid.uuid4())
         try:
             with self.conn.cursor() as cur:
-                cur.execute("CALL insert_manga_chapter_url_store(%s, %s, %s, %s, %s, %s, %s, %s)", 
+                cur.execute("CALL insert_manga_chapter_url_store(%s, %s, %s, %s, %s, %s, %s, %s, %s)", 
                         (manga_chapter_url_id, 
                          manga_id, 
                          website_id, 
@@ -159,6 +159,7 @@ class MangaScraperDB:
                          record["chapter_url"], 
                          int(record["number_of_pages"]),  # Ensure this is an integer
                          str(record["chapter_url_status"]), 
+                         int(record['chapter_number']),
                          datetime.strptime(record["date_checked"], '%Y-%m-%d %H:%M:%S')  # Parse to datetime object
                         ))
                 self.conn.commit()
@@ -188,6 +189,29 @@ class MangaScraperDB:
         except Exception as e:
             print(f"Error in get_website_id: {e}")
             return None
+        
+    def get_frontend_data(self) -> List[Dict[str, Any]]:
+        """
+        Method to retrieve data in the format to present on the frontend.
+        """
+        try:
+            with self.conn.cursor() as cur:
+                cur.execute("SELECT * FROM get_manga_data()")
+                result = cur.fetchall()
+                return [
+                    {
+                        "id": row[0],
+                        "title": row[1],
+                        "link": row[2],  # This needs to be correctly mapped
+                        "lastUpdated": row[3].strftime('%Y-%m-%d'),
+                        "imageUrl": row[4],
+                        "status": row[5],
+                        "chapter_number": row[6]
+                    } for row in result
+                ]
+        except Exception as e:
+            print(f"Error in get_frontend_data: {e}")
+            return []
 
     def close_connection(self):
         """

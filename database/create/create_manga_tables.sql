@@ -49,13 +49,14 @@ CREATE TABLE manga_chapter_url_store (
     chapter_url VARCHAR(255),
     number_of_pages INTEGER,
     chapter_url_status VARCHAR(100),
+    chapter_number INT,
     date_checked TIMESTAMP
 );
 
 CREATE TABLE manga_thumbnail (
     -- This table stores the thumbnail of the manga that has been scraped
     -- Ideally should not be stored in RDBMS but in cloud
-    manga_thumbnail_id PRIMARY KEY,
+    manga_thumbnail_id UUID PRIMARY KEY,
     manga_id UUID REFERENCES manga_table(manga_id),
     website_id UUID REFERENCES website_table(website_id),
     manga_path_id UUID REFERENCES manga_path_table(manga_path_id),

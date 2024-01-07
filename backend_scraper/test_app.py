@@ -4,6 +4,7 @@
 from fastapi import FastAPI
 from src.manga_scraper import *
 from data_models.manga_records import *
+from src.manga_scraper_db import *
 import json
 # from src.manga_scraper_db import *
 
@@ -93,3 +94,15 @@ def get_data():
     API for frontend to call from server to populate everyday
     """
     pass
+
+@app.get("/get_data", response_model=List[Dict[str, Any]])
+async def get_data() -> List[Dict[str, Any]]:
+    """
+    Endpoint to retrieve manga data for the frontend.
+
+    Returns:
+        List[Dict[str, Any]]: A list of dictionaries containing manga data.
+    """
+    ms_db = MangaScraperDB()
+    manga_list = ms_db.get_frontend_data()
+    return manga_list
