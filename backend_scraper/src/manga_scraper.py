@@ -173,6 +173,21 @@ class MangaScraper:
             Dict: Object containing the data object to be inserted into the database
         """
         raise NotImplementedError("Subclasses should implement this method")
+    
+    def get_chapter_number(self, url:str) -> int:
+        """
+        Method to extract chapter number from provided link
+
+        Args:
+            url (str): Main manga link
+
+        Raises:
+            NotImplementedError: _description_
+
+        Returns:
+            Dict: Object containing the data object to be inserted into the database
+        """
+        raise NotImplementedError("Subclasses should implement this method")
 
 
 
@@ -453,9 +468,24 @@ class vizScraper(MangaScraper):
             "date_checked":time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())), # Convert epoch time to ymdhms
             "number_of_pages":self.extract_chapter_length(parse_html_obj[0]),
             "chapter_url_status":response_code,
-            "manga_thumbnail_url": self.extract_thumbnail(url)
+            "manga_thumbnail_url": self.extract_thumbnail(url),
+            "website_url": self.get_base_url(parse_html_obj[0]),
+            "chapter_number": self.get_chapter_number(parse_html_obj[0])
         }
         return record
+    
+    def get_chapter_number(self, url:str):
+        """
+        Get chapter number from link
+
+        Args:
+            url (str): _description_
+        """
+        pattern = r"chapter-(\d+)"
+        match = re.search(pattern, url)
+    
+        # Return the matched group (digits after "chapter-") if found
+        return int(match.group(1)) if match else None
 
     def extract_thumbnail(self, url:str):
         """
@@ -578,9 +608,26 @@ class webtoonScraper(MangaScraper):
             "date_checked":time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())), # Convert epoch time to ymdhms
             "number_of_pages":self.extract_chapter_length(parse_html_obj[0]),
             "chapter_url_status":response_code,
-            "manga_thumbnail_url": self.extract_thumbnail(url)
+            "manga_thumbnail_url": self.extract_thumbnail(url),
+            "website_url": self.get_base_url(parse_html_obj[0]),
+            "chapter_number": self.get_chapter_number(parse_html_obj[0])
         }
         return record
+    
+
+    def get_chapter_number(self, url:str):
+        """
+        Get chapter number from link
+
+        Args:
+            url (str): _description_
+        """
+        # Regex pattern to find digits after "episode-"
+        pattern = r"episode_no=(\d+)"
+        match = re.search(pattern, url)
+        
+        # Return the matched group (digits after "episode-") if found
+        return int(match.group(1)) if match else None
 
 ## Example usage
 # manga_list = {
