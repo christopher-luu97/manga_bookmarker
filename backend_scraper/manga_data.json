@@ -1,1 +1,67 @@
-{"manga_records":[{"id":"1","lastChecked":"2023-03-01","link":"https://tcbscans.com/mangas/5/one-piece","status":"Good","title":"One Piece"},{"id":"2","lastChecked":"2023-03-01","link":"https://chapmanganato.com/manga-gv952204","status":"Good","title":"Battle Through The Heavens"},{"id":"3","lastChecked":"2023-03-01","link":"https://flamecomics.com/series/the-breaker-3/","status":"Good","title":"The Breaker 3 - Eternal Force"},{"id":"4","lastChecked":"2023-03-01","link":"https://manga-demon.org/manga/Overgeared-VA45","status":"Good","title":"Overgeared"},{"id":"5","lastChecked":"2023-03-01","link":"https://creepyscans.com/manga/a-returners-magic-should-be-special/","status":"Good","title":"A Returners Magic Should be Special"},{"id":"6","lastChecked":"2023-03-01","link":"https://www.webtoons.com/en/drama/lookism/list?title_no=1049","status":"Good","title":"Lookism"},{"id":"7","lastChecked":"2023-03-1","link":"https://luminousscans.net/series/1702713601-heavenly-demon-chronicles/","status":"Good","title":"The Chronicles of the Heavenly Demon"},{"id":"8","lastChecked":"2023-03-1","link":"https://asuratoon.com/manga/7827014947-reincarnation-of-the-suicidal-battle-god/","status":"Good","title":"Reincarnation of the Suicidal Battle God"},{"id":"new_1704261873314","lastChecked":"2024-01-03T06:04:33.314Z","link":"https://www.viz.com/shonenjump/chapters/kagurabachi","status":"Good","title":"New Manga"}]}
+{
+  "manga_records": [
+    {
+      "id": "1",
+      "lastChecked": "2023-03-01",
+      "link": "https://tcbscans.com/mangas/5/one-piece",
+      "status": "Delete",
+      "title": "One Piece"
+    },
+    {
+      "id": "2",
+      "lastChecked": "2023-03-01",
+      "link": "https://chapmanganato.com/manga-gv952204",
+      "status": "Good",
+      "title": "Battle Through The Heavens"
+    },
+    {
+      "id": "3",
+      "lastChecked": "2023-03-01",
+      "link": "https://flamecomics.com/series/the-breaker-3/",
+      "status": "Good",
+      "title": "The Breaker 3 - Eternal Force"
+    },
+    {
+      "id": "4",
+      "lastChecked": "2023-03-01",
+      "link": "https://manga-demon.org/manga/Overgeared-VA45",
+      "status": "Good",
+      "title": "Overgeared"
+    },
+    {
+      "id": "5",
+      "lastChecked": "2023-03-01",
+      "link": "https://creepyscans.com/manga/a-returners-magic-should-be-special/",
+      "status": "Good",
+      "title": "A Returners Magic Should be Special"
+    },
+    {
+      "id": "6",
+      "lastChecked": "2023-03-01",
+      "link": "https://www.webtoons.com/en/drama/lookism/list?title_no=1049",
+      "status": "Good",
+      "title": "Lookism"
+    },
+    {
+      "id": "7",
+      "lastChecked": "2023-03-1",
+      "link": "https://luminousscans.net/series/1702713601-heavenly-demon-chronicles/",
+      "status": "Good",
+      "title": "The Chronicles of the Heavenly Demon"
+    },
+    {
+      "id": "8",
+      "lastChecked": "2023-03-1",
+      "link": "https://asuratoon.com/manga/7827014947-reincarnation-of-the-suicidal-battle-god/",
+      "status": "Good",
+      "title": "Reincarnation of the Suicidal Battle God"
+    },
+    {
+      "id": "new_1704699729701",
+      "lastChecked": "2024-01-08T07:42:09.701Z",
+      "link": "https://www.viz.com/shonenjump/chapters/sakamoto-days",
+      "status": "Good",
+      "title": "New Manga"
+    }
+  ]
+}
