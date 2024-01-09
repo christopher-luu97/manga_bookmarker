@@ -6,6 +6,7 @@ from src.manga_scraper import *
 from data_models.manga_records import *
 from src.manga_scraper_db import *
 import json
+from typing import List, Dict
 # from src.manga_scraper_db import *
 
 # uvicorn test_app:app --reload
@@ -89,11 +90,6 @@ def insert_records(output_list):
     """
     pass
 
-def get_data():
-    """
-    API for frontend to call from server to populate everyday
-    """
-    pass
 
 @app.get("/get_data", response_model=List[Dict[str, Any]])
 async def get_data() -> List[Dict[str, Any]]:
@@ -106,3 +102,36 @@ async def get_data() -> List[Dict[str, Any]]:
     ms_db = MangaScraperDB()
     manga_list = ms_db.get_frontend_data()
     return manga_list
+
+
+def delete_record(manga_list: List[MangaRecord]) -> List[Dict[str, str]]:
+    """
+    Deletes records from the database for each manga in the provided list that is marked with the status 'Delete'.
+
+    This function iterates over the provided manga list, checks for the status of each manga record, and if the
+    status is 'Delete', it proceeds to call a stored procedure to remove the corresponding records from various
+    related database tables.
+
+    Args:
+        manga_list (List[MangaRecord]): A list of MangaRecord objects, each representing a manga record.
+
+    Returns:
+        List[Dict[str, str]]: A list of dictionaries containing error messages for any manga records that failed
+                              to be deleted. Each dictionary includes the 'id' of the manga and the 'error' message.
+    """
+
+    ms_db = MangaScraperDB()
+    delete_list = [item for item in manga_list if item.status.lower() == "delete"]
+
+    error_list = []
+    for item in delete_list:
+        try:
+            with ms_db.conn.cursor() as cur:
+                cur.execute("CALL delete_manga_record(%s)", (item.id,))
+                ms_db.conn.commit()
+        except Exception as e:
+            error_list.append({"id": item.id, "error": str(e)})
+            ms_db.conn.rollback()
+
+    ms_db.close_connection()
+    return error_list
