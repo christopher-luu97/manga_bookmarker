@@ -43,8 +43,12 @@ export const Modal: React.FC<{
     console.log(draftData);
   };
 
-  const handleDelete = (id: number) => {
-    setDraftData(draftData.filter((item) => item.id !== id));
+  const handleDelete = (id: string) => {
+    setDraftData(
+      draftData.map((item) =>
+        item.id === id ? { ...item, status: "Delete" } : item
+      )
+    );
   };
 
   const handleDiscard = () => {
@@ -95,40 +99,42 @@ export const Modal: React.FC<{
               </tr>
             </thead>
             <tbody>
-              {draftData.map((manga) => (
-                <tr key={manga.id}>
-                  <td className="border px-4 py-2 max-w-xs overflow-auto whitespace-nowrap">
-                    {manga.title}
-                  </td>
-                  <td className="border px-4 py-2 max-w-xs overflow-auto whitespace-nowrap">
-                    <a
-                      href={manga.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-500 hover:underline"
-                      style={{ maxWidth: "50ch" }}
-                    >
-                      {manga.link}
-                    </a>
-                  </td>
-                  <td className="border px-4 py-2 text-center">
-                    <span
-                      className={`inline-block h-4 w-4 rounded-full mr-2 ${getStatusColor(
-                        manga.status
-                      )}`}
-                      title={manga.status}
-                    ></span>
-                  </td>
-                  <td className="border px-4 py-2">
-                    <button
-                      onClick={() => handleDelete(manga.id)}
-                      className="text-red-500 hover:text-red-700"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {draftData
+                .filter((item) => item.status !== "Delete")
+                .map((manga) => (
+                  <tr key={manga.id}>
+                    <td className="border px-4 py-2 max-w-xs overflow-auto whitespace-nowrap">
+                      {manga.title}
+                    </td>
+                    <td className="border px-4 py-2 max-w-xs overflow-auto whitespace-nowrap">
+                      <a
+                        href={manga.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-500 hover:underline"
+                        style={{ maxWidth: "50ch" }}
+                      >
+                        {manga.link}
+                      </a>
+                    </td>
+                    <td className="border px-4 py-2 text-center">
+                      <span
+                        className={`inline-block h-4 w-4 rounded-full mr-2 ${getStatusColor(
+                          manga.status
+                        )}`}
+                        title={manga.status}
+                      ></span>
+                    </td>
+                    <td className="border px-4 py-2">
+                      <button
+                        onClick={() => handleDelete(manga.id)}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>
         </div>
