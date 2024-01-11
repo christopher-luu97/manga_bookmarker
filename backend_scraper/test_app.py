@@ -42,6 +42,7 @@ async def update_manga_list(manga_list: MangaList):
         "confirmation": response
     }
 
+## TODO: Handling duplicate records that are inserted to the database. Current method just adds new row with new ID even if data is the same
 def bulk_insert_record(output_list: List[Dict[str, Any]]):
     """
     Bulk insert records then close at the end
@@ -107,16 +108,6 @@ def get_new_record(manga_list):
     new_list = [item for item in manga_list.manga_records if "new_" in item.id]
     return new_list
 
-def insert_records(output_list):
-    """
-    Method to call the mangaScraperDB class to perform DB operations
-
-    Args:
-        output_list (_type_): _description_
-    """
-    pass
-
-
 @app.get("/get_data", response_model=List[Dict[str, Any]])
 async def get_data() -> List[Dict[str, Any]]:
     """
@@ -129,7 +120,7 @@ async def get_data() -> List[Dict[str, Any]]:
     manga_list = ms_db.get_frontend_data()
     return manga_list
 
-
+## TODO: Migrate delete record to the ms_db class
 def delete_record(manga_list: List[MangaRecord]) -> List[Dict[str, str]]:
     """
     Deletes records from the database for each manga in the provided list that is marked with the status 'Delete'.

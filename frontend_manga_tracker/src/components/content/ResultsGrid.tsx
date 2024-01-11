@@ -1,8 +1,8 @@
 // src/components/ResultsGrid.tsx
 import React, { useState } from "react";
-import { mangaData } from "../data/mangaData";
+// import { mangaData } from "../data/mangaData";
 
-export const ResultsGrid: React.FC = () => {
+export const ResultsGrid: React.FC<{ mangaData: any[] }> = ({ mangaData }) => {
   const itemsPerRow = 5; // Adjust based on your grid setup
   const initialRows = 2;
   const initialItemCount = itemsPerRow * initialRows;
