@@ -32,12 +32,16 @@ export const Modal: React.FC<{
   };
 
   const handleAdd = () => {
+    // Create new data for new records that match the format the backend is expecting
+    // There are various placeholders besides newLink
     const newData = {
+      chapter_number: 0, // Placeholder
       id: `new_${Date.now()}`,
-      lastChecked: new Date().toISOString(),
+      imageUrl: "",
+      lastUpdated: new Date().toISOString(),
       link: newLink,
-      status: "Good",
-      title: "New Manga",
+      status: "Good", // Placeholder
+      title: "New Manga", // Placeholder
     };
     setDraftData([...draftData, newData]);
     console.log(draftData);

@@ -33,6 +33,7 @@ async def update_manga_list(manga_list: MangaList):
     #     file.write(manga_list.json())
     output_list, error_list = scrape_record(manga_list)
     bulk_insert_record(output_list)
+    delete_record(manga_list)
     ms_db = MangaScraperDB()
     response = ms_db.get_frontend_data()
     print(f"response: {response}")
@@ -60,7 +61,8 @@ def bulk_insert_record(output_list: List[Dict[str, Any]]):
         manga_path = item["manga_path"]
         manga_path_id = ms_db.insert_manga_path(manga_id = manga_id, website_id = website_id, manga_path = manga_path)
         manga_chapter_url_id = ms_db.insert_manga_chapter_url_store(record = item, manga_id = manga_id, website_id = website_id, manga_path_id = manga_path_id)
-        print(manga_id, website_id, manga_path, manga_path_id, manga_chapter_url_id)
+        manga_thumbnail_id = ms_db.insert_manga_thumbnail(manga_id, website_id, manga_path_id, thumbnail_url=item["manga_thumbnail_url"])
+        print(manga_id, website_id, manga_path, manga_path_id, manga_chapter_url_id, manga_thumbnail_id)
     ms_db.close_connection()
 
 def scrape_record(manga_list):
@@ -120,6 +122,31 @@ async def get_data() -> List[Dict[str, Any]]:
     manga_list = ms_db.get_frontend_data()
     return manga_list
 
+@app.get("/get_bookmarks_data", response_model=List[Dict[str, Any]])
+async def get_data() -> List[Dict[str, Any]]:
+    """
+    Endpoint to retrieve manga data for the frontend bookmarks component
+
+    Returns:
+        List[Dict[str, Any]]: A list of dictionaries containing manga data.
+    """
+    ms_db = MangaScraperDB()
+    manga_list = ms_db.get_bookmarks_data()
+    return manga_list
+
+@app.get("/get_supported_websites", response_model=List[Dict[str, Any]])
+async def get_data() -> List[Dict[str, Any]]:
+    """
+    Endpoint to retrieve manga data for the frontend supported websites component within bookmarks
+
+    Returns:
+        List[Dict[str, Any]]: A list of dictionaries containing manga data.
+    """
+    ms_db = MangaScraperDB()
+    manga_list = ms_db.get_supported_websites()
+    print(manga_list)
+    return manga_list
+
 ## TODO: Migrate delete record to the ms_db class
 def delete_record(manga_list: List[MangaRecord]) -> List[Dict[str, str]]:
     """
@@ -137,18 +164,18 @@ def delete_record(manga_list: List[MangaRecord]) -> List[Dict[str, str]]:
                               to be deleted. Each dictionary includes the 'id' of the manga and the 'error' message.
     """
 
-    ms_db = MangaScraperDB()
-    delete_list = [item for item in manga_list if item.status.lower() == "delete"]
-
+    delete_list = [item for item in manga_list.manga_records if item.status.lower() == "delete"]
     error_list = []
-    for item in delete_list:
-        try:
-            with ms_db.conn.cursor() as cur:
-                cur.execute("CALL delete_manga_record(%s)", (item.id,))
-                ms_db.conn.commit()
-        except Exception as e:
-            error_list.append({"id": item.id, "error": str(e)})
-            ms_db.conn.rollback()
+    if len(delete_list) >0:
+        ms_db = MangaScraperDB()
+        for item in delete_list:
+            try:
+                with ms_db.conn.cursor() as cur:
+                    cur.execute("CALL delete_manga_record(%s)", (item.id,))
+                    ms_db.conn.commit()
+            except Exception as e:
+                error_list.append({"id": item.id, "error": str(e)})
+                ms_db.conn.rollback()
 
-    ms_db.close_connection()
+        ms_db.close_connection()
     return error_list

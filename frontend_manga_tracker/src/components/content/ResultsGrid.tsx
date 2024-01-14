@@ -18,6 +18,24 @@ export const ResultsGrid: React.FC<{ mangaData: any[] }> = ({ mangaData }) => {
     setVisibleItems(initialItemCount);
   };
 
+  if (mangaData.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center p-4 min-h-screen">
+        <p className="text-lg md:text-xl font-semibold mb-3">
+          No data in the database!
+        </p>
+        <p className="text-md md:text-lg mb-2">
+          Add records by clicking the Edit button on the computer.
+        </p>
+        <div className="hidden md:block">
+          <p className="text-sm text-gray-600 italic">
+            (The Edit button is not available on mobile devices)
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4 p-4 border border-gray-200 shadow-lg rounded-lg overflow-hidden">

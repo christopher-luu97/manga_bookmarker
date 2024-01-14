@@ -10,6 +10,9 @@ import { mangaPathData as initialMangaData } from "./data/mangaPathData";
 export const ApplicationContent: React.FC = () => {
   const [mangaData, setMangaData] = useState(initialMangaData);
   const [isModalOpen, setModalOpen] = useState(false);
+  const [refreshData, setRefreshData] = useState(false);
+  const [bookmarksData, setBookmarksData] = useState([]);
+  const [supportedWebsitesData, setSupportedWebsitesData] = useState([]);
 
   const handleEditButtonClick = () => {
     setModalOpen(true);
@@ -21,6 +24,7 @@ export const ApplicationContent: React.FC = () => {
 
   const handleUpdateData = (newData: any[]) => {
     setMangaData(newData);
+    setRefreshData(!refreshData); // Toggle the state to trigger re-fetch after modal edits
   };
 
   // Add use effect to poll backend API for data from database
@@ -29,14 +33,23 @@ export const ApplicationContent: React.FC = () => {
       try {
         const response = await axios.get("http://127.0.0.1:8000/get_data");
         setMangaData(response.data);
+
+        const bookmarksResponse = await axios.get(
+          "http://127.0.0.1:8000/get_bookmarks_data"
+        );
+        setBookmarksData(bookmarksResponse.data);
+
+        const supportedWebsiteResponse = await axios.get(
+          "http://127.0.0.1:8000/get_supported_websites"
+        );
+        setSupportedWebsitesData(supportedWebsiteResponse.data);
       } catch (error) {
         console.error("Error fetching data:", error);
-        // Optionally handle the error (e.g., show an error message)
       }
     };
 
     fetchData();
-  }, []);
+  }, [refreshData]);
 
   return (
     <div className="p-4">
@@ -64,7 +77,10 @@ export const ApplicationContent: React.FC = () => {
         </div>
 
         <div className="md:w-1/3">
-          <BookmarksList />
+          <BookmarksList
+            bookmarksData={bookmarksData}
+            supportedWebsitesData={supportedWebsitesData}
+          />
         </div>
       </div>
     </div>

@@ -3,8 +3,10 @@
 from pydantic import BaseModel
 
 class MangaRecord(BaseModel):
+    chapter_number: int
     id: str
-    lastChecked: str
+    imageUrl: str
+    lastUpdated: str
     link: str
     # If status is good then is fine, if status == "Delete" then the user can delete these records from the database
     # We will use the status flag to indicate what database operations to use
