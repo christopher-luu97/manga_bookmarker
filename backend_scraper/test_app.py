@@ -144,7 +144,6 @@ async def get_data() -> List[Dict[str, Any]]:
     """
     ms_db = MangaScraperDB()
     manga_list = ms_db.get_supported_websites()
-    print(manga_list)
     return manga_list
 
 ## TODO: Migrate delete record to the ms_db class

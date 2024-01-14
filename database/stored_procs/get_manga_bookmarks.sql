@@ -11,7 +11,7 @@ BEGIN
     SELECT 
         m.manga_id,
         m.manga_name,
-        w.website_url || p.manga_path AS full_url,
+        CAST(w.website_url || p.manga_path AS VARCHAR) AS full_url,
         w.date_checked,
         w.website_status
     FROM 
