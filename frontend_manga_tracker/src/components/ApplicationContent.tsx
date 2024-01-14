@@ -63,7 +63,7 @@ export const ApplicationContent: React.FC = () => {
   }, [refreshData]);
 
   return (
-    <div className="p-4">
+    <div className="ApplicationContent p-4">
       {/* Top row for filters and search */}
       <div className="flex flex-wrap gap-4 mb-4">
         {/* TODO Genre, Type, Order Filters */}
