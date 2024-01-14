@@ -1,8 +1,8 @@
 // src/components/ResultsGrid.tsx
 import React, { useState } from "react";
-import { mangaData } from "../data/mangaData";
+// import { mangaData } from "../data/mangaData";
 
-export const ResultsGrid: React.FC = () => {
+export const ResultsGrid: React.FC<{ mangaData: any[] }> = ({ mangaData }) => {
   const itemsPerRow = 5; // Adjust based on your grid setup
   const initialRows = 2;
   const initialItemCount = itemsPerRow * initialRows;
@@ -17,6 +17,24 @@ export const ResultsGrid: React.FC = () => {
   const showLess = () => {
     setVisibleItems(initialItemCount);
   };
+
+  if (mangaData.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center p-4 min-h-screen">
+        <p className="text-lg md:text-xl font-semibold mb-3">
+          No data in the database!
+        </p>
+        <p className="text-md md:text-lg mb-2">
+          Add records by clicking the Edit button on the computer.
+        </p>
+        <div className="hidden md:block">
+          <p className="text-sm text-gray-600 italic">
+            (The Edit button is not available on mobile devices)
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>

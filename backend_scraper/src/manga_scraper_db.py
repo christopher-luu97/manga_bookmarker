@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import Dict, List, Any
 import json
 from psycopg2 import OperationalError
+import re
 
 
 class MangaScraperDB:
@@ -37,6 +38,25 @@ class MangaScraperDB:
         """
         with open(filename, 'r') as file:
             return json.load(file)
+        
+    def extract_website_name(self, url):
+        """
+        Specific method used for the database insertion for website names
+
+        Args:
+            url (str): URL name. e.g. url1 = "https://www.example.com" -> example
+                                        url2 = "https://example.com" -> example
+
+        Returns:
+            (str | None): Website name if regex'd properly
+        """
+        # Regular expression to capture the main part of the domain name
+        pattern = r"https?://(?:www\.)?([a-zA-Z0-9-]+)\.[a-zA-Z]+"
+        match = re.search(pattern, url)
+        if match:
+            return match.group(1)  # Return the captured website name
+        else:
+            return None  # Return None if no match is found
 
     def insert_website(self, website_url:str, website_status:str):
         """
@@ -47,10 +67,12 @@ class MangaScraperDB:
             website_status (str): Status code of the website
         """
         website_id = str(uuid.uuid4())
+        website_name = self.extract_website_name(website_url)
         try:
             with self.conn.cursor() as cur:
-                cur.execute("CALL insert_website(%s, %s, %s, %s)",
+                cur.execute("CALL insert_website(%s, %s, %s, %s, %s)",
                             (website_id, 
+                             website_name,
                              website_url, 
                              website_status, 
                              datetime.now()))
@@ -168,6 +190,31 @@ class MangaScraperDB:
             self.conn.rollback()
         return manga_chapter_url_id
     
+
+    def insert_manga_thumbnail(self, manga_id: str, website_id: str, manga_path_id: str, thumbnail_url: str) -> str:
+        """
+        Insert data into the manga_thumbnail table.
+
+        Args:
+            manga_id (str): ID of the manga.
+            website_id (str): ID of the website.
+            manga_path_id (str): ID of the manga path.
+            thumbnail_url (str): URL of the manga thumbnail.
+
+        Returns:
+            str: ID of the inserted manga thumbnail record.
+        """
+        manga_thumbnail_id = str(uuid.uuid4())
+        try:
+            with self.conn.cursor() as cur:
+                cur.execute("CALL insert_manga_thumbnail(%s, %s, %s, %s, %s)",
+                            (manga_thumbnail_id, manga_id, website_id, manga_path_id, thumbnail_url))
+                self.conn.commit()
+        except Exception as e:
+            print(f"Error in insert_manga_thumbnail: {e}")
+            self.conn.rollback()
+        return manga_thumbnail_id
+    
     def get_website_id(self, website_url: str) -> str:
         """
         Retrieve the website ID for a given website URL.
@@ -211,6 +258,50 @@ class MangaScraperDB:
                 ]
         except Exception as e:
             print(f"Error in get_frontend_data: {e}")
+            return []
+        
+    
+    def get_bookmarks_data(self) -> List[Dict[str, Any]]:
+        """
+        Method to retrieve data in the format to present on the frontend bookmarks component
+        """
+        try:
+            with self.conn.cursor() as cur:
+                cur.execute("SELECT * FROM get_manga_bookmarks()")
+                result = cur.fetchall()
+                return [
+                    {
+                        "id": row[0],
+                        "title": row[1],
+                        "link": row[2],  # This needs to be correctly mapped
+                        "lastUpdated": row[3].strftime('%Y-%m-%d'),
+                        "status": row[4]
+                    } for row in result
+                ]
+        except Exception as e:
+            print(f"Error in get_bookmarks_data: {e}")
+            return []
+        
+    def get_supported_websites(self) -> List[Dict[str, Any]]:
+        """
+        Method to retrieve data in the format to present on the frontend bookmarks component
+        Specifically the supported websites section
+        """
+        try:
+            with self.conn.cursor() as cur:
+                cur.execute("SELECT * FROM get_supported_websites()")
+                result = cur.fetchall()
+                return [
+                    {
+                        "id": row[0],
+                        "title": row[1],
+                        "link": row[2],
+                        "status": row[3],
+                        "lastUpdated": row[4]
+                    } for row in result
+                ]
+        except Exception as e:
+            print(f"Error in get_bookmarks_data: {e}")
             return []
 
     def close_connection(self):

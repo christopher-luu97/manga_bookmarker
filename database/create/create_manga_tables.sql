@@ -1,6 +1,7 @@
 CREATE TABLE website_table (
     -- This table contains the key websites that are supported
     website_id UUID PRIMARY KEY,
+    website_name VARCHAR(255),
     website_url VARCHAR(255),
     website_status VARCHAR(100),
     date_checked TIMESTAMP
