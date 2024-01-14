@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import { SearchBar } from "./filters/SearchBar";
 import { EditButton } from "./content/EditButton";
@@ -13,6 +13,7 @@ export const ApplicationContent: React.FC = () => {
   const [refreshData, setRefreshData] = useState(false);
   const [bookmarksData, setBookmarksData] = useState([]);
   const [supportedWebsitesData, setSupportedWebsitesData] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const handleEditButtonClick = () => {
     setModalOpen(true);
@@ -26,6 +27,16 @@ export const ApplicationContent: React.FC = () => {
     setMangaData(newData);
     setRefreshData(!refreshData); // Toggle the state to trigger re-fetch after modal edits
   };
+
+  const handleSearchChange = (newSearchTerm: string) => {
+    setSearchTerm(newSearchTerm);
+  };
+
+  const filteredMangaData = useMemo(() => {
+    return mangaData.filter((manga) =>
+      manga.title.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [mangaData, searchTerm]);
 
   // Add use effect to poll backend API for data from database
   useEffect(() => {
@@ -60,7 +71,10 @@ export const ApplicationContent: React.FC = () => {
         {/* <GenreFilter />
         <TypeFilter />
         <OrderFilter /> */}
-        <SearchBar />
+        <SearchBar
+          searchTerm={searchTerm}
+          onSearchChange={handleSearchChange}
+        />
         <EditButton onClick={handleEditButtonClick} />
         {isModalOpen && (
           <Modal
@@ -73,7 +87,7 @@ export const ApplicationContent: React.FC = () => {
 
       <div className="flex flex-col md:flex-row gap-4 md:gap-8">
         <div className="flex-grow md:w-2/3">
-          <ResultsGrid mangaData={mangaData} />
+          <ResultsGrid mangaData={filteredMangaData} />
         </div>
 
         <div className="md:w-1/3">
