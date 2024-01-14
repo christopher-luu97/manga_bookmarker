@@ -269,15 +269,18 @@ class MangaScraperDB:
             with self.conn.cursor() as cur:
                 cur.execute("SELECT * FROM get_manga_bookmarks()")
                 result = cur.fetchall()
-                return [
-                    {
+                formatted_data = []
+                for row in result:
+                    timestamp = datetime.fromisoformat(str(row[3]))
+                    formatted_str = timestamp.strftime('%Y-%m-%d %H:%M:%S')
+                    formatted_data.append({
                         "id": row[0],
                         "title": row[1],
-                        "link": row[2],  # This needs to be correctly mapped
-                        "lastUpdated": row[3].strftime('%Y-%m-%d'),
+                        "link": row[2],
+                        "lastUpdated": formatted_str,
                         "status": row[4]
-                    } for row in result
-                ]
+                    })
+                return formatted_data
         except Exception as e:
             print(f"Error in get_bookmarks_data: {e}")
             return []
