@@ -36,7 +36,6 @@ async def update_manga_list(manga_list: MangaList):
     delete_record(manga_list)
     ms_db = MangaScraperDB()
     response = ms_db.get_frontend_data()
-    print(f"response: {response}")
     return {
         "message": "Successfully confirmed", 
         "url": "http://127.0.0.1:8000/", 
@@ -54,7 +53,6 @@ def bulk_insert_record(output_list: List[Dict[str, Any]]):
     ms_db = MangaScraperDB()
     for item in output_list:
         manga_name = item["manga_name"]
-        print(manga_name)
         manga_id = ms_db.insert_manga(manga_name = manga_name)
 
         website_id = ms_db.get_website_id(item["website_url"])
