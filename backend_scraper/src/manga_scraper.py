@@ -394,6 +394,29 @@ class MangaKakalotScraper(MangaScraper):
                 return "No integer found in the text"
         else:
             return "Div not found"
+        
+    def get_latest_chapter(self, url: str):
+        """
+        Grabs only the latest chapter from a given URL.
+
+        Args:
+            url (str): The URL of the manga page.
+
+        Returns:
+            str: The URL of the latest chapter, or None if not found or an error occurred.
+        """
+        try:
+            response = requests.get(url)
+            response.raise_for_status()  # Raise an exception for HTTP errors
+            html_content = response.text
+
+            soup = bs4.BeautifulSoup(html_content, 'html.parser')
+            ul = soup.find('ul', class_='row-content-chapter')
+            first_link = ul.find('a', class_='chapter-name') if ul else None
+            return first_link.get('href') if first_link else None
+        except Exception as e:
+            print(f"Error occurred while fetching the latest chapter: {e}")
+            return None
 
     def create_record(self, url:str) -> Dict:
         """
@@ -409,7 +432,7 @@ class MangaKakalotScraper(MangaScraper):
         record = {
             "manga_name": self.extract_name(url), # Get the manga name
             "manga_path": self.extract_manga_path(url),
-            "chapter_url": parse_html_obj[0],
+            "chapter_url": self.get_latest_chapter(url),
             "date_checked":time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())), # Convert epoch time to ymdhms
             "number_of_pages": 0, # self.extract_chapter_length(parse_html_obj[0]),
             "chapter_url_status":response_code,
