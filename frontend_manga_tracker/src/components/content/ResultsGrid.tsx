@@ -1,6 +1,6 @@
 // src/components/ResultsGrid.tsx
 import React, { useState } from "react";
-// import { mangaData } from "../data/mangaData";
+import { capitalizeFirstLetterOfEachWord } from "../util/util"; // import { mangaData } from "../data/mangaData";
 
 export const ResultsGrid: React.FC<{ mangaData: any[] }> = ({ mangaData }) => {
   const itemsPerRow = 5; // Adjust based on your grid setup
@@ -20,7 +20,7 @@ export const ResultsGrid: React.FC<{ mangaData: any[] }> = ({ mangaData }) => {
 
   if (mangaData.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center p-4 min-h-screen">
+      <div className="flex flex-col items-center justify-center p-4 min-h-screen text-[#FAEBEF]">
         <p className="text-lg md:text-xl font-semibold mb-3">
           No data in the database!
         </p>
@@ -28,7 +28,7 @@ export const ResultsGrid: React.FC<{ mangaData: any[] }> = ({ mangaData }) => {
           Add records by clicking the Edit button on the computer.
         </p>
         <div className="hidden md:block">
-          <p className="text-sm text-gray-600 italic">
+          <p className="text-sm text-[#FAEBEF] italic">
             (The Edit button is not available on mobile devices)
           </p>
         </div>
@@ -38,11 +38,11 @@ export const ResultsGrid: React.FC<{ mangaData: any[] }> = ({ mangaData }) => {
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 p-4 border border-gray-200 shadow-lg rounded-lg overflow-hidden">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 p-4 border border-gray-200 shadow-lg rounded-lg overflow-hidden bg-[#FAEBEF]">
         {mangaData.slice(0, visibleItems).map((manga) => (
           <div
             key={manga.id}
-            className="border border-gray-200 shadow-sm rounded-lg overflow-hidden transform transition duration-300 ease-in-out hover:scale-105"
+            className="border border-[#333D79] shadow-lg rounded-lg overflow-hidden transform transition duration-300 ease-in-out hover:scale-105"
           >
             <a
               href={manga.link}
@@ -58,8 +58,8 @@ export const ResultsGrid: React.FC<{ mangaData: any[] }> = ({ mangaData }) => {
                 />
               </div>
               <div className="text-center p-2">
-                <p className="transition duration-300 ease-in-out hover:text-blue-500">
-                  {manga.title}
+                <p className="font-semibold transition duration-300 ease-in-out hover:text-blue-500">
+                  {capitalizeFirstLetterOfEachWord(manga.title)}
                 </p>
                 <p>{manga.chapter}</p>
                 <p>{manga.lastUpdated}</p>

@@ -1,17 +1,18 @@
 import React from "react";
 import { getStatusColor } from "./statusColour";
+import { capitalizeFirstLetterOfEachWord } from "../util/util";
 
 export const BookmarksList: React.FC<{
   bookmarksData: any[];
   supportedWebsitesData: any[];
 }> = ({ bookmarksData, supportedWebsitesData }) => {
   return (
-    <div className="border border-gray-200 shadow-xl rounded-lg p-4 bg-white">
+    <div className="border border-gray-200 shadow-xl rounded-lg p-4 bg-[#FAEBEF]">
       {/* Supported Websites Section */}
       <h3 className="text-lg font-semibold mb-4 text-left">
         Supported Websites
       </h3>
-      <div className="max-h-84 mb-6 overflow-auto shadow-inner rounded-lg p-2">
+      <div className="max-h-84 mb-6 overflow-auto shadow-inner rounded-lg p-2 border border-[#333D79]">
         <ul>
           {supportedWebsitesData.map((website) => (
             <li
@@ -39,7 +40,7 @@ export const BookmarksList: React.FC<{
       {/* Manga Bookmarks Section */}
       <h3 className="text-lg font-semibold mb-4 text-left">Manga Bookmarks</h3>
       {bookmarksData.length === 0 ? (
-        <div className="flex flex-col items-center justify-center p-4">
+        <div className="flex flex-col items-center justify-center p-4 border border-[#333D79] text-[#333D79]">
           <p className="text-lg md:text-xl font-semibold mb-3">
             No data in the database!
           </p>
@@ -53,7 +54,7 @@ export const BookmarksList: React.FC<{
           </div>
         </div>
       ) : (
-        <div className="max-h-64 overflow-auto shadow-inner rounded-lg p-2">
+        <div className="max-h-64 overflow-auto shadow-inner rounded-lg p-2 border border-[#333D79]">
           <ul>
             {bookmarksData.map((manga) => (
               <li key={manga.id} className="mb-4 text-left">
@@ -70,7 +71,7 @@ export const BookmarksList: React.FC<{
                       rel="noopener noreferrer"
                       className="text-blue-600 hover:text-blue-800"
                     >
-                      {manga.title}
+                      {capitalizeFirstLetterOfEachWord(manga.title)}
                     </a>
                     <div className="text-sm text-gray-600">
                       {manga.lastUpdated}

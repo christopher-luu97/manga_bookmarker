@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { getStatusColor } from "../status/statusColour";
+import { capitalizeFirstLetterOfEachWord } from "../util/util";
 import axios from "axios";
 
 export const Modal: React.FC<{
@@ -68,19 +69,19 @@ export const Modal: React.FC<{
   return (
     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 backdrop-blur-sm">
       <div
-        className="relative top-20 mx-auto p-5 border shadow-lg rounded-md bg-white z-50"
+        className="relative top-20 mx-auto p-5 border shadow-lg rounded-md bg-[#333D79] z-50"
         style={{ width: "80%" }}
       >
         <button
           onClick={onClose}
-          className="absolute top-2 right-3 text-xl text-gray-600 hover:text-gray-800"
+          className="absolute top-2 right-3 text-xl text-[#FAEBEF] hover:text-[#FAEBEF]"
         >
           &times;
         </button>
-        <h3 className="text-lg font-semibold mb-4 text-blue-600">
+        <h3 className="text-lg font-semibold mb-4 text-[#FAEBEF] ">
           Edit Manga List
         </h3>
-        <div className="my-4 border p-2 rounded-lg shadow">
+        <div className="my-4 border p-2 rounded-lg shadow bg-[#FAEBEF]">
           {isLoading && (
             <div className="absolute top-0 left-0 right-0 bottom-0 bg-gray-200 bg-opacity-75 flex justify-center items-center">
               <svg
@@ -111,7 +112,7 @@ export const Modal: React.FC<{
           />
           <button
             onClick={handleAdd}
-            className="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600"
+            className="bg-[#333D79] text-white px-2 py-1 rounded hover:bg-[#195190]"
           >
             Add
           </button>
@@ -121,18 +122,18 @@ export const Modal: React.FC<{
             <thead>
               <tr className="bg-gray-100">
                 <th className="border px-4 py-2">Title</th>
-                <th className="border px-4 py-2">Link</th>
+                <th className="border px-4 py-2">Latest Chapter Link</th>
                 <th className="border px-4 py-2">Status</th>
                 <th className="border px-4 py-2">Delete</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="bg-[#FAEBEF]">
               {draftData
                 .filter((item) => item.status !== "Delete")
                 .map((manga) => (
                   <tr key={manga.id}>
-                    <td className="border px-4 py-2 max-w-xs overflow-auto whitespace-nowrap">
-                      {manga.title}
+                    <td className="border px-4 py-2 max-w-xs overflow-auto whitespace-nowrap text-[#333D79] font-semibold">
+                      {capitalizeFirstLetterOfEachWord(manga.title)}
                     </td>
                     <td className="border px-4 py-2 max-w-xs overflow-auto whitespace-nowrap">
                       <a
@@ -169,13 +170,13 @@ export const Modal: React.FC<{
         <div className="flex justify-between mt-4">
           <button
             onClick={handleConfirm}
-            className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+            className="px-4 py-2 bg-[#1a7a4c] text-white rounded hover:bg-green-600"
           >
             Confirm changes
           </button>
           <button
             onClick={handleDiscard}
-            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+            className="px-4 py-2 bg-[#990011] text-white rounded hover:bg-red-600"
           >
             Discard Changes
           </button>
