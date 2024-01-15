@@ -78,6 +78,7 @@ def scrape_record(manga_list):
     output_list = []
     manga_list = get_new_record(manga_list)
     ms = MangaScraper(manga_list)
+    mk_scraper = MangaKakalotScraper(manga_list)
     for item in ms.manga_list:
         item_base_url = ms.get_base_url(item.link)
         if item_base_url in supported_list:
@@ -88,6 +89,11 @@ def scrape_record(manga_list):
             elif "webtoons" in item_base_url:
                 ws = webtoonScraper(manga_list)
                 db_data = ws.create_record(item.link)  
+
+                ## Here we leverage mangakakalot scraper for thumbnails if it works
+                search_url = mk_scraper.find_manga_link(search_query=db_data["manga_name"])
+                db_data["manga_thumbnail_url"] = mk_scraper.extract_thumbnail(search_url) # Replace webtoon method with mangakakalot
+                print(db_data)
                 output_list.append(db_data)
         else:
             error_list.append(item.link)

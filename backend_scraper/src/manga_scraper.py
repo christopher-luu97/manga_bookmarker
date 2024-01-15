@@ -189,6 +189,21 @@ class MangaScraper:
         """
         raise NotImplementedError("Subclasses should implement this method")
 
+    def extract_chapter_length(self, url:str) -> int:
+        """
+        Method to extract chapter length from provided link
+
+        Args:
+            url (str): Main manga link
+
+        Raises:
+            NotImplementedError: _description_
+
+        Returns:
+            Dict: Object containing the data object to be inserted into the database
+        """
+        raise NotImplementedError("Subclasses should implement this method")
+
 
 
 class TcbScansScraper(MangaScraper):
@@ -269,17 +284,17 @@ class MangaKakalotScraper(MangaScraper):
 
         return {"genres": []}
     
-    def find_manga_link(self, search_string:str, search_query:str) -> Optional[str]:
+    def find_manga_link(self, search_query:str) -> Optional[str]:
         """
         Find the manga link with a title matching the query_string in the provided BeautifulSoup object.
 
         Args:
-            soup (bs4.BeautifulSoup): BeautifulSoup object of the parsed HTML content.
-            query_string (str): The query string to match (case-insensitive).
+            search_query (str): The query string to match (case-insensitive).
 
         Returns:
             Optional[str]: The URL of the manga if found, None otherwise.
         """
+        search_string = f"https://chapmanganato.to/https://manganato.com/search/story/{search_query}"
         response = requests.get(search_string)
 
         if response.status_code == 200:
@@ -589,6 +604,20 @@ class webtoonScraper(MangaScraper):
         if response.status_code == 200:
             soup = bs4.BeautifulSoup(response.content, 'html.parser')
             return self.parse_html(soup, self.base_url, url), response.status_code
+    
+    def extract_chapter_length(self, url: str) -> int:
+        """
+        Leave empty for now
+
+        Args:
+            url (str): _description_
+
+        Returns:
+            int: _description_
+        """
+        # Conditional statement that returns div not found potentially
+        ## method
+        return 0
     
     def create_record(self, url:str) -> Dict:
         """
