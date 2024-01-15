@@ -189,6 +189,21 @@ class MangaScraper:
         """
         raise NotImplementedError("Subclasses should implement this method")
 
+    def extract_chapter_length(self, url:str) -> int:
+        """
+        Method to extract chapter length from provided link
+
+        Args:
+            url (str): Main manga link
+
+        Raises:
+            NotImplementedError: _description_
+
+        Returns:
+            Dict: Object containing the data object to be inserted into the database
+        """
+        raise NotImplementedError("Subclasses should implement this method")
+
 
 
 class TcbScansScraper(MangaScraper):
@@ -219,6 +234,10 @@ class TcbScansScraper(MangaScraper):
     
         
 class MangaKakalotScraper(MangaScraper):
+    def __init__(self, manga_list: List[dict]):
+        super().__init__(manga_list)
+        self.base_url = "https://manganato.com/"
+
     def parse_html(self, soup: bs4.BeautifulSoup, base_url: str, complete_url: str) -> Tuple[Optional[str], Optional[str], str]:
         """
         Parses the HTML content from MangaKakalot website.
@@ -269,17 +288,17 @@ class MangaKakalotScraper(MangaScraper):
 
         return {"genres": []}
     
-    def find_manga_link(self, search_string:str, search_query:str) -> Optional[str]:
+    def find_manga_link(self, search_query:str) -> Optional[str]:
         """
         Find the manga link with a title matching the query_string in the provided BeautifulSoup object.
 
         Args:
-            soup (bs4.BeautifulSoup): BeautifulSoup object of the parsed HTML content.
-            query_string (str): The query string to match (case-insensitive).
+            search_query (str): The query string to match (case-insensitive).
 
         Returns:
             Optional[str]: The URL of the manga if found, None otherwise.
         """
+        search_string = f"https://chapmanganato.to/https://manganato.com/search/story/{search_query}"
         response = requests.get(search_string)
 
         if response.status_code == 200:
@@ -292,9 +311,113 @@ class MangaKakalotScraper(MangaScraper):
                 if link.get('title', '').lower() == search_query.lower():
                     return link.get('href')
         return None
+    
 
-    def create_record(self, url: str) -> Dict:
-        return super().create_record(url)
+    def extract_name(self, url:str):
+        """
+        Get name from website via scraping
+
+        Args:
+            url (str): _description_
+
+        Returns:
+            _type_: _description_
+        """
+        response = requests.get(url)
+
+        if response.status_code == 200:
+            soup = bs4.BeautifulSoup(response.content, 'html.parser')
+        # Regular expression to extract the part after the last '/'
+            story_info_right_div = soup.find('div', class_='story-info-right')
+            if story_info_right_div:
+                h1_tag = story_info_right_div.find('h1')
+                if h1_tag:
+                    return h1_tag.get_text().strip()
+        return "Manga title not found"
+    
+    def extract_manga_path(self, url:str):
+        """
+        Extract manga path from url. 
+        
+        Example url:"https://chapmanganato.to/manga-ax951880". This is Tales of Demons and Gods manhua
+        Example output: /manga-ax951880
+
+        Args:
+            url (str): _description_
+
+        Returns:
+            _type_: _description_
+        """
+        # Regular expression to extract everything after '.com'
+        match = re.search(r'https?://[^/]+(/.*)', url)
+
+        if match:
+            return match.group(1)
+        else:
+            return "No match found"
+
+    def extract_latest_chapter(self, url:str):
+        """
+        Grab the link to the latest chapter
+
+        Args:
+            url (str): _description_
+        """
+        response = requests.get(url)
+        if response.status_code == 200:
+            soup = bs4.BeautifulSoup(response.content, 'html.parser')
+            return self.parse_html(soup, self.base_url, url), response.status_code
+    
+    ##TODO: Page number on viz is rendered dynamically through JS which can't be fetched with bs4 or requests
+    def extract_chapter_length(self, url:str):
+        """
+        URL comes from latest_chapter in parse_html_obj[0] from self.extract_latest_chapter
+
+        Args:
+            url (_type_): _description_
+        """
+         # Parse the HTML content
+        soup = bs4.BeautifulSoup(url, 'html.parser')
+        
+        # Find the <div> with the specific class
+        div = soup.find('div', class_='page_slider_label left')
+        
+        if div:
+            # Extract the text from the <div>
+            text = div.get_text().strip()
+            
+            # Use regular expression to find the integer
+            match = re.search(r'\d+', text)
+            if match:
+                return int(match.group(0))
+            else:
+                return "No integer found in the text"
+        else:
+            return "Div not found"
+
+    def create_record(self, url:str) -> Dict:
+        """
+        This method is used for first time additions of new manga.
+
+        Args:
+            url (str): _description_
+
+        Returns:
+            _type_: _description_
+        """
+        parse_html_obj, response_code = self.extract_latest_chapter(url)
+        record = {
+            "manga_name": self.extract_name(url), # Get the manga name
+            "manga_path": self.extract_manga_path(url),
+            "chapter_url": parse_html_obj[0],
+            "date_checked":time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())), # Convert epoch time to ymdhms
+            "number_of_pages": 0, # self.extract_chapter_length(parse_html_obj[0]),
+            "chapter_url_status":response_code,
+            "manga_thumbnail_url": self.extract_thumbnail(url),
+            "website_url": parse_html_obj[1],
+            "chapter_number": parse_html_obj[2]
+        }
+        return record
 
 
 class MangaDemonScraper(MangaScraper):
@@ -589,6 +712,20 @@ class webtoonScraper(MangaScraper):
         if response.status_code == 200:
             soup = bs4.BeautifulSoup(response.content, 'html.parser')
             return self.parse_html(soup, self.base_url, url), response.status_code
+    
+    def extract_chapter_length(self, url: str) -> int:
+        """
+        Leave empty for now
+
+        Args:
+            url (str): _description_
+
+        Returns:
+            int: _description_
+        """
+        # Conditional statement that returns div not found potentially
+        ## method
+        return 0
     
     def create_record(self, url:str) -> Dict:
         """
