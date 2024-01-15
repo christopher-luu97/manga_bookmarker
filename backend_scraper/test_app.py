@@ -6,7 +6,7 @@ from src.manga_scraper import *
 from data_models.manga_records import *
 from src.manga_scraper_db import *
 import json
-from typing import List, Dict
+from typing import List, Dict, Any
 # from src.manga_scraper_db import *
 
 # uvicorn test_app:app --reload
@@ -81,23 +81,67 @@ def scrape_record(manga_list):
     mk_scraper = MangaKakalotScraper(manga_list)
     for item in ms.manga_list:
         item_base_url = ms.get_base_url(item.link)
-        if item_base_url in supported_list:
-            if "viz" in item_base_url:
-                vs = vizScraper(manga_list)
-                db_data = vs.create_record(item.link)
-                output_list.append(db_data)
-            elif "webtoons" in item_base_url:
-                ws = webtoonScraper(manga_list)
-                db_data = ws.create_record(item.link)  
-
-                ## Here we leverage mangakakalot scraper for thumbnails if it works
-                search_url = mk_scraper.find_manga_link(search_query=db_data["manga_name"])
-                db_data["manga_thumbnail_url"] = mk_scraper.extract_thumbnail(search_url) # Replace webtoon method with mangakakalot
-                print(db_data)
-                output_list.append(db_data)
+        if "viz" in item_base_url:
+            db_data = viz_scrape(item, manga_list)
+            output_list.append(db_data)
+        elif "webtoons" in item_base_url:
+            db_data = webtoon_scrape(item, manga_list, mk_scraper)
+            output_list.append(db_data)
+        elif "chapmanganato" in item_base_url:
+            db_data = mangakakalot_scrape(item, manga_list)
+            output_list.append(db_data)
         else:
             error_list.append(item.link)
+
     return (output_list, error_list)
+
+def viz_scrape(item: Dict[str, Any], manga_list: list) -> Dict[str, Any]:
+    """
+    Scrape data for a manga from the Viz website.
+
+    Args:
+        item (Dict[str, Any]): A dictionary containing the manga item details.
+        manga_list (list): The list of manga records.
+
+    Returns:
+        Dict[str, Any]: The scraped data for the manga.
+    """
+    vs = vizScraper(manga_list)
+    return vs.create_record(item.link)
+
+def webtoon_scrape(item: Dict[str, Any], manga_list: list, mk_scraper: MangaKakalotScraper) -> Dict[str, Any]:
+    """
+    Scrape data for a manga from the Webtoons website and leverage MangaKakalot scraper for thumbnails.
+
+    Args:
+        item (Dict[str, Any]): A dictionary containing the manga item details.
+        manga_list (list): The list of manga records.
+        mk_scraper (MangaKakalotScraper): The MangaKakalot scraper instance.
+
+    Returns:
+        Dict[str, Any]: The scraped data for the manga.
+    """
+    ws = webtoonScraper(manga_list)
+    db_data = ws.create_record(item.link)
+
+    # Find manga link in MangaKakalot and extract the thumbnail URL
+    search_url = mk_scraper.find_manga_link(search_query=db_data["manga_name"])
+    db_data["manga_thumbnail_url"] = mk_scraper.extract_thumbnail(search_url)
+    return db_data
+
+def mangakakalot_scrape(item: Dict[str, Any], manga_list: list) -> Dict[str, Any]:
+    """
+    Scrape data for a manga from the MangaKakalot website.
+
+    Args:
+        item (Dict[str, Any]): A dictionary containing the manga item details.
+        manga_list (list): The list of manga records.
+
+    Returns:
+        Dict[str, Any]: The scraped data for the manga.
+    """
+    mk = MangaKakalotScraper(manga_list)
+    return mk.create_record(item.link)
 
 def get_new_record(manga_list):
     """
