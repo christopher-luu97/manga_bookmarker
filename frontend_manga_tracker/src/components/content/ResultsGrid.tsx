@@ -61,8 +61,8 @@ export const ResultsGrid: React.FC<{ mangaData: any[] }> = ({ mangaData }) => {
                 <p className="font-semibold transition duration-300 ease-in-out hover:text-blue-500">
                   {capitalizeFirstLetterOfEachWord(manga.title)}
                 </p>
-                <p>{manga.chapter}</p>
-                <p>{manga.lastUpdated}</p>
+                <p className="">Ch. {manga.chapter_number}</p>
+                <p className="font-extralight">{manga.lastUpdated}</p>
               </div>
             </a>
           </div>
