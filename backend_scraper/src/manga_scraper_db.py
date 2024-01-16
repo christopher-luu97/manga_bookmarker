@@ -5,6 +5,7 @@ from typing import Dict, List, Any
 import json
 from psycopg2 import OperationalError
 import re
+import jellyfish # For string distance matching. See: https://github.com/jamesturk/jellyfish
 
 
 class MangaScraperDB:
@@ -100,6 +101,29 @@ class MangaScraperDB:
             print(f"Error in insert_manga: {e}")
             self.conn.rollback()
         return manga_id
+
+    def find_similar_manga(self, manga_name: str) -> str:
+        """
+        Find a manga in the database with a similar name.
+
+        Args:
+            manga_name (str): Name of the manga to search for.
+
+        Returns:
+            str: The manga_id of a similar manga or None if no match is found.
+        """
+        try:
+            with self.conn.cursor() as cur:
+                cur.execute("SELECT manga_id, manga_name FROM manga_table")
+                for row in cur.fetchall():
+                    existing_manga_id, existing_manga_name = row
+                    similarity = jellyfish.jaro_winkler_similarity(manga_name.lower(), existing_manga_name.lower())
+                    if similarity > 0.85:  # Adjust threshold as needed
+                        return existing_manga_id
+                return None
+        except Exception as e:
+            print(f"Error in find_similar_manga: {e}")
+            return None
 
     def insert_manga_path(self, manga_id:str, website_id:str, manga_path:str):
         """

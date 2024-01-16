@@ -24,7 +24,7 @@ export const Modal: React.FC<{
         manga_records: draftData,
       });
       if (response.data) {
-        setSuccessMessage(`Changes confirmed successfully!`);
+        setSuccessMessage(response.data.db_upload_status);
         onUpdate(draftData);
       }
     } catch (error) {
@@ -182,7 +182,7 @@ export const Modal: React.FC<{
           </button>
         </div>
         {successMessage && (
-          <div className="text-green-500 mt-3">{successMessage}</div>
+          <div className="text-white mt-3">{successMessage}</div>
         )}
       </div>
     </div>

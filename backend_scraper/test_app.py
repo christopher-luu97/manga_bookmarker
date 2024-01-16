@@ -32,14 +32,15 @@ async def update_manga_list(manga_list: MangaList):
     # with open('manga_data.json', 'w') as file:
     #     file.write(manga_list.json())
     output_list, error_list = scrape_record(manga_list)
-    bulk_insert_record(output_list)
+    insert_record_response = bulk_insert_record(output_list)
     delete_record(manga_list)
     ms_db = MangaScraperDB()
     response = ms_db.get_frontend_data()
     return {
         "message": "Successfully confirmed", 
         "url": "http://127.0.0.1:8000/", 
-        "confirmation": response
+        "confirmation": response,
+        "db_upload_status": insert_record_response
     }
 
 ## TODO: Handling duplicate records that are inserted to the database. Current method just adds new row with new ID even if data is the same
@@ -53,14 +54,18 @@ def bulk_insert_record(output_list: List[Dict[str, Any]]):
     ms_db = MangaScraperDB()
     for item in output_list:
         manga_name = item["manga_name"]
-        manga_id = ms_db.insert_manga(manga_name = manga_name)
+        similar_manga_id = ms_db.find_similar_manga(manga_name)
+        if similar_manga_id is None:
+            manga_id = ms_db.insert_manga(manga_name=manga_name)
+            website_id = ms_db.get_website_id(item["website_url"])
+            manga_path = item["manga_path"]
+            manga_path_id = ms_db.insert_manga_path(manga_id = manga_id, website_id = website_id, manga_path = manga_path)
+            ms_db.insert_manga_chapter_url_store(record = item, manga_id = manga_id, website_id = website_id, manga_path_id = manga_path_id)
+            ms_db.insert_manga_thumbnail(manga_id, website_id, manga_path_id, thumbnail_url=item["manga_thumbnail_url"])
+            return "Success!"
+        else:
+            return(f"Similar manga already exists in the database: {manga_name}. Record was not added. Please delete existing record if you wish to update with a new link.")
 
-        website_id = ms_db.get_website_id(item["website_url"])
-        manga_path = item["manga_path"]
-        manga_path_id = ms_db.insert_manga_path(manga_id = manga_id, website_id = website_id, manga_path = manga_path)
-        manga_chapter_url_id = ms_db.insert_manga_chapter_url_store(record = item, manga_id = manga_id, website_id = website_id, manga_path_id = manga_path_id)
-        manga_thumbnail_id = ms_db.insert_manga_thumbnail(manga_id, website_id, manga_path_id, thumbnail_url=item["manga_thumbnail_url"])
-        print(manga_id, website_id, manga_path, manga_path_id, manga_chapter_url_id, manga_thumbnail_id)
     ms_db.close_connection()
 
 def scrape_record(manga_list):
@@ -213,8 +218,10 @@ def delete_record(manga_list: List[MangaRecord]) -> List[Dict[str, str]]:
 
     delete_list = [item for item in manga_list.manga_records if item.status.lower() == "delete"]
     error_list = []
-    if len(delete_list) >0:
+    if len(delete_list) >0: # Only run if the data exists
         ms_db = MangaScraperDB()
+        # We know the data can be deleted because the data is grabbed from the backend to be presented to the frontend
+        # This frontend data is then sent as part of the response when updating records
         for item in delete_list:
             try:
                 with ms_db.conn.cursor() as cur:
