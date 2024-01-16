@@ -117,7 +117,7 @@ class MangaScraperDB:
                 cur.execute("SELECT manga_id, manga_name FROM manga_table")
                 for row in cur.fetchall():
                     existing_manga_id, existing_manga_name = row
-                    similarity = jellyfish.jaro_winkler_similarity(manga_name.lower(), existing_manga_name.lower())
+                    similarity = jellyfish.jaro_similarity(manga_name.lower(), existing_manga_name.lower())
                     if similarity > 0.85:  # Adjust threshold as needed
                         return existing_manga_id
                 return None
@@ -330,6 +330,59 @@ class MangaScraperDB:
         except Exception as e:
             print(f"Error in get_bookmarks_data: {e}")
             return []
+        
+    def is_thumbnail_exists(self, manga_id: str, website_id: str, manga_path_id: str, thumbnail_url: str) -> bool:
+        """
+        Check if a thumbnail URL already exists in the database.
+        """
+        try:
+            with self.conn.cursor() as cur:
+                cur.execute("SELECT check_thumbnail_exists(%s, %s, %s, %s)",
+                            (manga_id, website_id, manga_path_id, thumbnail_url))
+                result = cur.fetchone()
+                return result[0]
+        except Exception as e:
+            print(f"Error in is_thumbnail_exists: {e}")
+            return False
+
+    def is_chapter_url_exists(self, manga_id: str, website_id: str, manga_path_id: str, chapter_url: str) -> bool:
+        """
+        Check if a chapter URL already exists in the database.
+        """
+        try:
+            with self.conn.cursor() as cur:
+                cur.execute("SELECT check_chapter_url_exists(%s, %s, %s, %s)",
+                            (manga_id, website_id, manga_path_id, chapter_url))
+                result = cur.fetchone()
+                return result[0]
+        except Exception as e:
+            print(f"Error in is_chapter_url_exists: {e}")
+            return False
+
+    def get_manga_path_id(self, manga_id: str, website_id: str, manga_path: str) -> str:
+        """
+        Retrieve the manga path ID for the given manga ID, website ID, and manga path.
+
+        Args:
+            manga_id (str): ID of the manga.
+            website_id (str): ID of the website.
+            manga_path (str): Path of the manga on the website.
+
+        Returns:
+            str: The manga path ID or None if not found.
+        """
+        try:
+            with self.conn.cursor() as cur:
+                cur.execute("SELECT get_manga_path_id(%s, %s, %s)",
+                            (manga_id, website_id, manga_path))
+                result = cur.fetchone()
+                if result:
+                    return result[0]
+                else:
+                    return None
+        except Exception as e:
+            print(f"Error in get_manga_path_id: {e}")
+            return None
 
     def close_connection(self):
         """

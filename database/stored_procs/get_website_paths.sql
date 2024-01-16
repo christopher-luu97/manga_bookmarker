@@ -11,7 +11,7 @@ BEGIN
         mp.manga_path_id,
         mp.manga_id,
         mt.manga_name,
-        wt.website_url || mp.manga_path AS full_path
+        CAST(wt.website_url || mp.manga_path AS VARCHAR) AS full_path
     FROM 
         manga_path_table mp
         INNER JOIN website_table wt ON mp.website_id = wt.website_id

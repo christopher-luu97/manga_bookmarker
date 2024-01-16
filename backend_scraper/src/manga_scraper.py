@@ -418,7 +418,7 @@ class MangaKakalotScraper(MangaScraper):
             print(f"Error occurred while fetching the latest chapter: {e}")
             return None
 
-    def create_record(self, url:str) -> Dict:
+    def create_record(self, url:str, base_url:str) -> Dict:
         """
         This method is used for first time additions of new manga.
 
@@ -437,7 +437,7 @@ class MangaKakalotScraper(MangaScraper):
             "number_of_pages": 0, # self.extract_chapter_length(parse_html_obj[0]),
             "chapter_url_status":response_code,
             "manga_thumbnail_url": self.extract_thumbnail(url),
-            "website_url": parse_html_obj[1],
+            "website_url": base_url,
             "chapter_number": parse_html_obj[2]
         }
         return record
