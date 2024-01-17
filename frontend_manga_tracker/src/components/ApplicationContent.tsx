@@ -8,6 +8,7 @@ import { Modal } from "./modal/Modal";
 import { mangaPathData as initialMangaData } from "./data/mangaPathData";
 import { RefreshButton } from "./content/refreshButton";
 import { WebsiteData } from "./data/websiteData";
+import { AlphabetFilter } from "./filters/OrderFilter";
 
 export const ApplicationContent: React.FC = () => {
   const [mangaData, setMangaData] = useState(initialMangaData);
@@ -20,6 +21,30 @@ export const ApplicationContent: React.FC = () => {
   const [isDataUpdated, setIsDataUpdated] = useState(false); // State to track if data has been refreshed
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [sortAlphabetOption, setSortAlpabetOption] = useState("none");
+
+  const handleSortChange = (newSortOption: string) => {
+    setSortAlpabetOption(newSortOption);
+  };
+
+  const sortedAndFilteredMangaData = useMemo(() => {
+    let sortedData = mangaData;
+    if (sortAlphabetOption !== "none") {
+      if (sortAlphabetOption === "alphabetical") {
+        sortedData = [...mangaData].sort((a, b) =>
+          a.title.localeCompare(b.title)
+        );
+      } else if (sortAlphabetOption === "reverse-alphabetical") {
+        sortedData = [...mangaData].sort((a, b) =>
+          b.title.localeCompare(a.title)
+        );
+      }
+    }
+
+    return sortedData.filter((manga) =>
+      manga.title.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [mangaData, searchTerm, sortAlphabetOption]);
 
   const handleEditButtonClick = () => {
     setModalOpen(true);
@@ -38,11 +63,11 @@ export const ApplicationContent: React.FC = () => {
     setSearchTerm(newSearchTerm);
   };
 
-  const filteredMangaData = useMemo(() => {
-    return mangaData.filter((manga) =>
-      manga.title.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [mangaData, searchTerm]);
+  // const filteredMangaData = useMemo(() => {
+  //   return mangaData.filter((manga) =>
+  //     manga.title.toLowerCase().includes(searchTerm.toLowerCase())
+  //   );
+  // }, [mangaData, searchTerm]);
 
   // Add use effect to poll backend API for data from database
   useEffect(() => {
@@ -112,6 +137,7 @@ export const ApplicationContent: React.FC = () => {
             )} // Assuming each website object has a `link` property
           />
         )}
+        <AlphabetFilter onSortChange={handleSortChange} />
         <RefreshButton onClick={handleRefreshClick} />
       </div>
 
@@ -145,7 +171,7 @@ export const ApplicationContent: React.FC = () => {
           )}
           <div className={`${isLoading ? "blur-sm" : ""}`}>
             <ResultsGrid
-              mangaData={filteredMangaData}
+              mangaData={sortedAndFilteredMangaData}
               isDataUpdated={isDataUpdated}
             />
           </div>
