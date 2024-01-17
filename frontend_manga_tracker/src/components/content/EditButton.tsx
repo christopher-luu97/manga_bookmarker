@@ -12,10 +12,11 @@ export const EditButton: React.FC<EditButtonProps> = ({
   return (
     <button
       onClick={onClick}
-      disabled={disabled} // Use the disabled prop
+      disabled={disabled}
       className={`hidden md:inline-block p-2 border border-gray-300 rounded bg-[#FAEBEF] text-[#333D79] hover:bg-gradient-to-r hover:from-[#FAEBEF] hover:to-[#FADCE6] cursor-pointer transition ease-in duration-200 ${
         disabled ? "opacity-50 cursor-not-allowed" : ""
-      }`} // Apply additional styles when disabled
+      }`}
+      title="Edit button"
     >
       Edit
     </button>

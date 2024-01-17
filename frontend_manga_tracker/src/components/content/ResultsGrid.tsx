@@ -41,6 +41,7 @@ export const ResultsGrid: React.FC<{ mangaData: any[] }> = ({ mangaData }) => {
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4 p-4 border border-gray-200 shadow-lg rounded-lg overflow-hidden bg-[#FAEBEF]">
         {mangaData.slice(0, visibleItems).map((manga) => (
           <div
+            title={`${manga.title} - Chapter ${manga.chapter_number}`}
             key={manga.id}
             className="border border-[#333D79] shadow-lg rounded-lg overflow-hidden transform transition duration-300 ease-in-out hover:scale-105"
           >
