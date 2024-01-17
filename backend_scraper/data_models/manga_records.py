@@ -1,12 +1,13 @@
 ## This file holds all the models for the API
 
 from pydantic import BaseModel
+from typing import Optional
 
 class MangaRecord(BaseModel):
-    chapter_number: int
+    chapter_number: Optional[int] = None
     id: str
-    imageUrl: str
-    lastUpdated: str
+    imageUrl: Optional[str] = None
+    lastUpdated: Optional[str] = None
     link: str
     # If status is good then is fine, if status == "Delete" then the user can delete these records from the database
     # We will use the status flag to indicate what database operations to use

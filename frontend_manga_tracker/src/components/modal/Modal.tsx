@@ -1,24 +1,67 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { getStatusColor } from "../status/statusColour";
-import { capitalizeFirstLetterOfEachWord } from "../util/util";
+import {
+  capitalizeFirstLetterOfEachWord,
+  getBaseUrl,
+  isSupportedWebsite,
+} from "../util/util";
 import axios from "axios";
 
 export const Modal: React.FC<{
   mangaData: any[];
   onUpdate: (data: any[]) => void;
   onClose: () => void;
-}> = ({ mangaData, onUpdate, onClose }) => {
+  supportedWebsitesData: string[]; // Add supported websites as a prop
+}> = ({ mangaData, onUpdate, onClose, supportedWebsitesData }) => {
   const [draftData, setDraftData] = useState([...mangaData]);
   const [newLink, setNewLink] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const lastTableRowRef = useRef<HTMLTableRowElement>(null);
+  const [isNewRecordAdded, setIsNewRecordAdded] = useState(false); // state to track addition of new record
+  const tableContainerRef = useRef<HTMLDivElement>(null);
+  const [isOverflowing, setIsOverflowing] = useState(false);
+
+  useEffect(() => {
+    const checkOverflow = () => {
+      if (tableContainerRef.current) {
+        setIsOverflowing(
+          tableContainerRef.current.scrollHeight >
+            tableContainerRef.current.clientHeight
+        );
+      }
+    };
+
+    // Check overflow on mount and on draftData changes
+    checkOverflow();
+    window.addEventListener("resize", checkOverflow);
+    return () => window.removeEventListener("resize", checkOverflow);
+  }, [draftData]);
 
   useEffect(() => {
     setDraftData([...mangaData]); // Update the local state when mangaData prop changes
   }, [mangaData]);
 
+  useEffect(() => {
+    if (isNewRecordAdded && lastTableRowRef.current) {
+      lastTableRowRef.current.scrollIntoView({ behavior: "smooth" });
+      setIsNewRecordAdded(false); // Reset the flag after scrolling
+    }
+  }, [draftData, isNewRecordAdded]);
+
+  const scrollToTop = () => {
+    tableContainerRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const scrollToBottom = () => {
+    tableContainerRef.current?.scrollTo({
+      top: tableContainerRef.current.scrollHeight,
+      behavior: "smooth",
+    });
+  };
+
   const handleConfirm = async () => {
-    setIsLoading(true); // Set loading to true
+    setIsLoading(true);
     try {
       const response = await axios.post("http://127.0.0.1:8000/", {
         manga_records: draftData,
@@ -38,6 +81,12 @@ export const Modal: React.FC<{
   const handleAdd = () => {
     // Create new data for new records that match the format the backend is expecting
     // There are various placeholders besides newLink
+    if (!isSupportedWebsite(newLink, supportedWebsitesData)) {
+      alert(
+        `The website ${newLink} is not supported. \nSee supported websites on the right pane of the home page`
+      ); // Notify the user
+      return; // Do not proceed with adding the new data
+    }
     const newData = {
       chapter_number: 0, // Placeholder
       id: `new_${Date.now()}`,
@@ -48,7 +97,7 @@ export const Modal: React.FC<{
       title: "New Manga", // Placeholder
     };
     setDraftData([...draftData, newData]);
-    console.log(draftData);
+    setIsNewRecordAdded(true); // Set flag to true when new record is added
   };
 
   const handleDelete = (id: string) => {
@@ -103,21 +152,65 @@ export const Modal: React.FC<{
               <span className="sr-only">Loading...</span>
             </div>
           )}
-          <input
-            type="text"
-            value={newLink}
-            onChange={(e) => setNewLink(e.target.value)}
-            className="border p-1 mr-2 rounded"
-            placeholder="Enter new manga link"
-          />
-          <button
-            onClick={handleAdd}
-            className="bg-[#333D79] text-white px-2 py-1 rounded hover:bg-[#195190]"
-          >
-            Add
-          </button>
+          <div className="bg-[#FAEBEF] flex items-center">
+            <input
+              type="text"
+              value={newLink}
+              onChange={(e) => setNewLink(e.target.value)}
+              className="border p-1 mr-2 rounded flex-grow"
+              placeholder="Enter new manga link"
+            />
+            <button
+              onClick={handleAdd}
+              className="bg-[#333D79] text-white px-2 py-1 rounded hover:bg-[#195190] mr-2"
+              title="Add record"
+            >
+              Add
+            </button>
+            {isOverflowing && (
+              <div className="flex-shrink-0">
+                <button
+                  onClick={scrollToTop}
+                  className="px-2 py-2 bg-[#FAEBEF] text-[#333D79] rounded hover:text-[#195190]"
+                  title="Scroll to top"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M18 15l-6-6-6 6" />
+                  </svg>{" "}
+                </button>
+                <button
+                  onClick={scrollToBottom}
+                  className="px-2 py-2 bg-[#FAEBEF] text-[#333D79] rounded hover:text-[#195190]"
+                  title="Scroll to bottom"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M6 9l6 6 6-6" />
+                  </svg>{" "}
+                </button>
+              </div>
+            )}
+          </div>
         </div>
-        <div className="overflow-auto">
+        <div className="max-h-96 overflow-y-auto" ref={tableContainerRef}>
+          {" "}
           <table className="min-w-full text-left border-collapse border border-gray-300">
             <thead>
               <tr className="bg-gray-100">
@@ -130,8 +223,13 @@ export const Modal: React.FC<{
             <tbody className="bg-[#FAEBEF]">
               {draftData
                 .filter((item) => item.status !== "Delete")
-                .map((manga) => (
-                  <tr key={manga.id}>
+                .map((manga, index) => (
+                  <tr
+                    key={manga.id}
+                    ref={
+                      index === draftData.length - 1 ? lastTableRowRef : null
+                    }
+                  >
                     <td className="border px-4 py-2 max-w-xs overflow-auto whitespace-nowrap text-[#333D79] font-semibold">
                       {capitalizeFirstLetterOfEachWord(manga.title)}
                     </td>
@@ -171,12 +269,14 @@ export const Modal: React.FC<{
           <button
             onClick={handleConfirm}
             className="px-4 py-2 bg-[#1a7a4c] text-white rounded hover:bg-green-600"
+            title="Submit changes"
           >
             Confirm changes
           </button>
           <button
             onClick={handleDiscard}
             className="px-4 py-2 bg-[#990011] text-white rounded hover:bg-red-600"
+            title="Discard changes"
           >
             Discard Changes
           </button>

@@ -3,8 +3,8 @@ import requests
 import re
 import time
 from urllib.parse import urlparse
-
 from typing import Optional, List, Dict, Union, Any, Tuple
+import jellyfish
 
 class MangaScraper:
     def __init__(self, manga_list: List[dict]):
@@ -298,7 +298,8 @@ class MangaKakalotScraper(MangaScraper):
         Returns:
             Optional[str]: The URL of the manga if found, None otherwise.
         """
-        search_string = f"https://chapmanganato.to/https://manganato.com/search/story/{search_query}"
+        search_query_link = search_query.strip().replace(" ", "_")
+        search_string = f"https://chapmanganato.to/https://manganato.com/search/story/{search_query_link}"
         response = requests.get(search_string)
 
         if response.status_code == 200:
@@ -308,7 +309,8 @@ class MangaKakalotScraper(MangaScraper):
         if item_right:
             links = item_right.find_all('a', class_='a-h text-nowrap item-title')
             for link in links:
-                if link.get('title', '').lower() == search_query.lower():
+                similarity = jellyfish.jaro_similarity(search_query.lower(), link.get('title','').lower())
+                if similarity > 0.80:  
                     return link.get('href')
         return None
     
@@ -418,7 +420,7 @@ class MangaKakalotScraper(MangaScraper):
             print(f"Error occurred while fetching the latest chapter: {e}")
             return None
 
-    def create_record(self, url:str) -> Dict:
+    def create_record(self, url:str, base_url:str) -> Dict:
         """
         This method is used for first time additions of new manga.
 
@@ -437,7 +439,7 @@ class MangaKakalotScraper(MangaScraper):
             "number_of_pages": 0, # self.extract_chapter_length(parse_html_obj[0]),
             "chapter_url_status":response_code,
             "manga_thumbnail_url": self.extract_thumbnail(url),
-            "website_url": parse_html_obj[1],
+            "website_url": base_url,
             "chapter_number": parse_html_obj[2]
         }
         return record
