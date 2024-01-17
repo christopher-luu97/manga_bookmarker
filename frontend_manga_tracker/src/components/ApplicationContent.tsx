@@ -17,6 +17,7 @@ export const ApplicationContent: React.FC = () => {
   const [supportedWebsitesData, setSupportedWebsitesData] = useState<
     WebsiteData[]
   >([]);
+  const [isDataUpdated, setIsDataUpdated] = useState(false); // State to track if data has been refreshed
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -72,11 +73,19 @@ export const ApplicationContent: React.FC = () => {
     try {
       await axios.get("http://127.0.0.1:8000/refresh_data");
       setRefreshData(!refreshData);
+      setIsDataUpdated(true);
     } catch (error) {
       console.error("Error refreshing data:", error);
     }
     setIsLoading(false); // Stop loading
   };
+
+  // Reset isDataUpdated when new data is set
+  useEffect(() => {
+    if (isDataUpdated) {
+      setIsDataUpdated(false);
+    }
+  }, [mangaData, isDataUpdated]);
 
   return (
     <div className="ApplicationContent p-4 bg-[#333D79]">
@@ -135,7 +144,10 @@ export const ApplicationContent: React.FC = () => {
             </div>
           )}
           <div className={`${isLoading ? "blur-sm" : ""}`}>
-            <ResultsGrid mangaData={filteredMangaData} />
+            <ResultsGrid
+              mangaData={filteredMangaData}
+              isDataUpdated={isDataUpdated}
+            />
           </div>
         </div>
 

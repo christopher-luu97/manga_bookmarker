@@ -43,4 +43,5 @@ Git Workflow:
 - Test CRON jobs
 - Add thumbnail searching for mangakakalot ## COMPLETE
 - Add mangakakalot into the backend scraping mechanism ## COMPLETE
-- Add website checks for additional data to see if they are in the supported websites.
+- Add website checks for additional data to see if they are in the supported websites. ## Complete
+- Add a highlight on border that is animated if it is a new chapter AND re-arrange their display to be ordered by latest chapter
