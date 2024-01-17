@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { getStatusColor } from "../status/statusColour";
 import {
   capitalizeFirstLetterOfEachWord,
@@ -17,13 +17,22 @@ export const Modal: React.FC<{
   const [newLink, setNewLink] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const lastTableRowRef = useRef<HTMLTableRowElement>(null);
+  const [isNewRecordAdded, setIsNewRecordAdded] = useState(false); // state to track addition of new record
 
   useEffect(() => {
     setDraftData([...mangaData]); // Update the local state when mangaData prop changes
   }, [mangaData]);
 
+  useEffect(() => {
+    if (isNewRecordAdded && lastTableRowRef.current) {
+      lastTableRowRef.current.scrollIntoView({ behavior: "smooth" });
+      setIsNewRecordAdded(false); // Reset the flag after scrolling
+    }
+  }, [draftData, isNewRecordAdded]);
+
   const handleConfirm = async () => {
-    setIsLoading(true); // Set loading to true
+    setIsLoading(true);
     try {
       const response = await axios.post("http://127.0.0.1:8000/", {
         manga_records: draftData,
@@ -59,7 +68,7 @@ export const Modal: React.FC<{
       title: "New Manga", // Placeholder
     };
     setDraftData([...draftData, newData]);
-    console.log(draftData);
+    setIsNewRecordAdded(true); // Set flag to true when new record is added
   };
 
   const handleDelete = (id: string) => {
@@ -128,7 +137,8 @@ export const Modal: React.FC<{
             Add
           </button>
         </div>
-        <div className="overflow-auto">
+        <div className="max-h-96 overflow-y-auto">
+          {" "}
           <table className="min-w-full text-left border-collapse border border-gray-300">
             <thead>
               <tr className="bg-gray-100">
@@ -141,8 +151,13 @@ export const Modal: React.FC<{
             <tbody className="bg-[#FAEBEF]">
               {draftData
                 .filter((item) => item.status !== "Delete")
-                .map((manga) => (
-                  <tr key={manga.id}>
+                .map((manga, index) => (
+                  <tr
+                    key={manga.id}
+                    ref={
+                      index === draftData.length - 1 ? lastTableRowRef : null
+                    }
+                  >
                     <td className="border px-4 py-2 max-w-xs overflow-auto whitespace-nowrap text-[#333D79] font-semibold">
                       {capitalizeFirstLetterOfEachWord(manga.title)}
                     </td>
