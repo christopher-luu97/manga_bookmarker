@@ -19,6 +19,24 @@ export const Modal: React.FC<{
   const [isLoading, setIsLoading] = useState(false);
   const lastTableRowRef = useRef<HTMLTableRowElement>(null);
   const [isNewRecordAdded, setIsNewRecordAdded] = useState(false); // state to track addition of new record
+  const tableContainerRef = useRef<HTMLDivElement>(null);
+  const [isOverflowing, setIsOverflowing] = useState(false);
+
+  useEffect(() => {
+    const checkOverflow = () => {
+      if (tableContainerRef.current) {
+        setIsOverflowing(
+          tableContainerRef.current.scrollHeight >
+            tableContainerRef.current.clientHeight
+        );
+      }
+    };
+
+    // Check overflow on mount and on draftData changes
+    checkOverflow();
+    window.addEventListener("resize", checkOverflow);
+    return () => window.removeEventListener("resize", checkOverflow);
+  }, [draftData]);
 
   useEffect(() => {
     setDraftData([...mangaData]); // Update the local state when mangaData prop changes
@@ -30,6 +48,17 @@ export const Modal: React.FC<{
       setIsNewRecordAdded(false); // Reset the flag after scrolling
     }
   }, [draftData, isNewRecordAdded]);
+
+  const scrollToTop = () => {
+    tableContainerRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const scrollToBottom = () => {
+    tableContainerRef.current?.scrollTo({
+      top: tableContainerRef.current.scrollHeight,
+      behavior: "smooth",
+    });
+  };
 
   const handleConfirm = async () => {
     setIsLoading(true);
@@ -123,21 +152,64 @@ export const Modal: React.FC<{
               <span className="sr-only">Loading...</span>
             </div>
           )}
-          <input
-            type="text"
-            value={newLink}
-            onChange={(e) => setNewLink(e.target.value)}
-            className="border p-1 mr-2 rounded"
-            placeholder="Enter new manga link"
-          />
-          <button
-            onClick={handleAdd}
-            className="bg-[#333D79] text-white px-2 py-1 rounded hover:bg-[#195190]"
-          >
-            Add
-          </button>
+          <div className="bg-[#FAEBEF] flex items-center">
+            <input
+              type="text"
+              value={newLink}
+              onChange={(e) => setNewLink(e.target.value)}
+              className="border p-1 mr-2 rounded flex-grow"
+              placeholder="Enter new manga link"
+            />
+            <button
+              onClick={handleAdd}
+              className="bg-[#333D79] text-white px-2 py-1 rounded hover:bg-[#195190] mr-2"
+              title="Add record"
+            >
+              Add
+            </button>
+            {isOverflowing && (
+              <div className="flex-shrink-0">
+                <button
+                  onClick={scrollToTop}
+                  className="px-2 py-2 bg-[#FAEBEF] text-[#333D79] rounded hover:text-[#195190]"
+                  title="Scroll to top"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M18 15l-6-6-6 6" />
+                  </svg>{" "}
+                </button>
+                <button
+                  onClick={scrollToBottom}
+                  className="px-2 py-2 bg-[#FAEBEF] text-[#333D79] rounded hover:text-[#195190]"
+                  title="Scroll to bottom"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M6 9l6 6 6-6" />
+                  </svg>{" "}
+                </button>
+              </div>
+            )}
+          </div>
         </div>
-        <div className="max-h-96 overflow-y-auto">
+        <div className="max-h-96 overflow-y-auto" ref={tableContainerRef}>
           {" "}
           <table className="min-w-full text-left border-collapse border border-gray-300">
             <thead>
@@ -197,12 +269,14 @@ export const Modal: React.FC<{
           <button
             onClick={handleConfirm}
             className="px-4 py-2 bg-[#1a7a4c] text-white rounded hover:bg-green-600"
+            title="Submit changes"
           >
             Confirm changes
           </button>
           <button
             onClick={handleDiscard}
             className="px-4 py-2 bg-[#990011] text-white rounded hover:bg-red-600"
+            title="Discard changes"
           >
             Discard Changes
           </button>
