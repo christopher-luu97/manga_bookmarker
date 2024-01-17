@@ -7,13 +7,16 @@ import { BookmarksList } from "./status/BookmarksList";
 import { Modal } from "./modal/Modal";
 import { mangaPathData as initialMangaData } from "./data/mangaPathData";
 import { RefreshButton } from "./content/refreshButton";
+import { WebsiteData } from "./data/websiteData";
 
 export const ApplicationContent: React.FC = () => {
   const [mangaData, setMangaData] = useState(initialMangaData);
   const [isModalOpen, setModalOpen] = useState(false);
   const [refreshData, setRefreshData] = useState(false);
   const [bookmarksData, setBookmarksData] = useState([]);
-  const [supportedWebsitesData, setSupportedWebsitesData] = useState([]);
+  const [supportedWebsitesData, setSupportedWebsitesData] = useState<
+    WebsiteData[]
+  >([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -95,6 +98,9 @@ export const ApplicationContent: React.FC = () => {
             mangaData={mangaData}
             onUpdate={handleUpdateData}
             onClose={handleCloseModal}
+            supportedWebsitesData={supportedWebsitesData.map(
+              (website) => website.link
+            )} // Assuming each website object has a `link` property
           />
         )}
         <RefreshButton onClick={handleRefreshClick} />

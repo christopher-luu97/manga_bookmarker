@@ -44,56 +44,6 @@ async def update_manga_list(manga_list: MangaList):
         "db_upload_status": insert_record_response
     }
 
-## TODO: Handling duplicate records that are inserted to the database. Current method just adds new row with new ID even if data is the same
-def bulk_insert_record(output_list: List[Dict[str, Any]], refresh_data:bool):
-    """
-    Bulk insert records then close at the end
-
-    Args:
-        output_list (List[Dict[str, Any]]): _description_
-    """
-    ms_db = MangaScraperDB()
-    for item in output_list:
-        manga_name = item["manga_name"]
-
-        # For new additions
-        if not(refresh_data):
-            similar_manga_id = ms_db.find_similar_manga(manga_name)
-            if similar_manga_id is None:
-                manga_id = ms_db.insert_manga(manga_name=manga_name)
-                website_id = ms_db.get_website_id(item["website_url"])
-                manga_path = item["manga_path"]
-                manga_path_id = ms_db.insert_manga_path(manga_id = manga_id, website_id = website_id, manga_path = manga_path)
-                ms_db.insert_manga_chapter_url_store(record = item, manga_id = manga_id, website_id = website_id, manga_path_id = manga_path_id)
-                ms_db.insert_manga_thumbnail(manga_id, website_id, manga_path_id, thumbnail_url=item["manga_thumbnail_url"])
-                return "Success!"
-            else:
-                return(f"Similar manga already exists in the database: {manga_name}. Record was not added. Please delete existing record if you wish to update with a new link.")
-        elif refresh_data:  
-            manga_id = ms_db.find_similar_manga(manga_name)
-            website_id = ms_db.get_website_id(item["website_url"])
-            manga_path = item["manga_path"]
-
-            manga_path_id = ms_db.get_manga_path_id(manga_id, website_id, manga_path)
-            if manga_path_id is None:
-            # Insert new manga path if it doesn't exist
-                print("manga_path_id is none")
-                manga_path_id = ms_db.insert_manga_path(manga_id=manga_id, website_id=website_id, manga_path=manga_path)
-
-            chapter_url = item["chapter_url"]
-            if not ms_db.is_chapter_url_exists(manga_id, website_id, manga_path_id, chapter_url):
-                print("new chapter url")
-                ms_db.insert_manga_chapter_url_store(record=item, manga_id=manga_id, website_id=website_id, manga_path_id=manga_path_id)
-
-            # Check and insert new manga thumbnail
-            thumbnail_url = item["manga_thumbnail_url"]
-            if not ms_db.is_thumbnail_exists(manga_id, website_id, manga_path_id, thumbnail_url):
-                print("new thumbnail url")
-                ms_db.insert_manga_thumbnail(manga_id, website_id, manga_path_id, thumbnail_url=thumbnail_url)
-
-    ms_db.close_connection()
-
-
 def scrape_record(manga_list):
     """
     Runner function to scrape and do all the backend stuff
@@ -125,55 +75,6 @@ def scrape_record(manga_list):
 
     return (output_list, error_list)
 
-def viz_scrape(item: Dict[str, Any], manga_list: list) -> Dict[str, Any]:
-    """
-    Scrape data for a manga from the Viz website.
-
-    Args:
-        item (Dict[str, Any]): A dictionary containing the manga item details.
-        manga_list (list): The list of manga records.
-
-    Returns:
-        Dict[str, Any]: The scraped data for the manga.
-    """
-    vs = vizScraper(manga_list)
-    return vs.create_record(item.link)
-
-def webtoon_scrape(item: Dict[str, Any], manga_list: list, mk_scraper: MangaKakalotScraper) -> Dict[str, Any]:
-    """
-    Scrape data for a manga from the Webtoons website and leverage MangaKakalot scraper for thumbnails.
-
-    Args:
-        item (Dict[str, Any]): A dictionary containing the manga item details.
-        manga_list (list): The list of manga records.
-        mk_scraper (MangaKakalotScraper): The MangaKakalot scraper instance.
-
-    Returns:
-        Dict[str, Any]: The scraped data for the manga.
-    """
-    ws = webtoonScraper(manga_list)
-    db_data = ws.create_record(item.link)
-
-    # Find manga link in MangaKakalot and extract the thumbnail URL
-    search_url = mk_scraper.find_manga_link(search_query=db_data["manga_name"])
-    db_data["manga_thumbnail_url"] = mk_scraper.extract_thumbnail(search_url)
-    return db_data
-
-def mangakakalot_scrape(item: Dict[str, Any], manga_list: list) -> Dict[str, Any]:
-    """
-    Scrape data for a manga from the MangaKakalot website.
-
-    Args:
-        item (Dict[str, Any]): A dictionary containing the manga item details.
-        manga_list (list): The list of manga records.
-
-    Returns:
-        Dict[str, Any]: The scraped data for the manga.
-    """
-    mk = MangaKakalotScraper(manga_list)
-    base_url = mk.get_base_url(item.link)
-    return mk.create_record(item.link, base_url)
-
 def get_new_record(manga_list):
     """
     Create the new records into a new list that we can iterate over and scrape.
@@ -190,7 +91,7 @@ def get_new_record(manga_list):
     return new_list
 
 @app.get("/get_data", response_model=List[Dict[str, Any]])
-async def get_data() -> List[Dict[str, Any]]:
+async def get_data_api() -> List[Dict[str, Any]]:
     """
     Endpoint to retrieve manga data for the frontend.
 
@@ -202,7 +103,7 @@ async def get_data() -> List[Dict[str, Any]]:
     return manga_list
 
 @app.get("/get_bookmarks_data", response_model=List[Dict[str, Any]])
-async def get_data() -> List[Dict[str, Any]]:
+async def get_frontend_data_api() -> List[Dict[str, Any]]:
     """
     Endpoint to retrieve manga data for the frontend bookmarks component
 
@@ -214,7 +115,7 @@ async def get_data() -> List[Dict[str, Any]]:
     return manga_list
 
 @app.get("/get_supported_websites", response_model=List[Dict[str, Any]])
-async def get_data() -> List[Dict[str, Any]]:
+async def get_supported_websites_data_api() -> List[Dict[str, Any]]:
     """
     Endpoint to retrieve manga data for the frontend supported websites component within bookmarks
 
@@ -270,30 +171,3 @@ def delete_record(manga_list: List[MangaRecord]) -> List[Dict[str, str]]:
 
         ms_db.close_connection()
     return error_list
-
-def scrape_existing_records(manga_list:List[MangaRecord]):
-    """
-    Scrape existing records in the database and update them as necessary
-
-    Args:
-        manga_list (List): List of manga records from the backend.
-    """
-    error_list = [] # List to store websites that are not supported
-    output_list = []
-    ms = MangaScraper(manga_list)
-    mk_scraper = MangaKakalotScraper(manga_list)
-    for item in ms.manga_list:
-        item_base_url = ms.get_base_url(item.link)
-        if "viz" in item_base_url:
-            db_data = viz_scrape(item, manga_list)
-            output_list.append(db_data)
-        elif "webtoons" in item_base_url:
-            db_data = webtoon_scrape(item, manga_list, mk_scraper)
-            output_list.append(db_data)
-        elif "chapmanganato" in item_base_url:
-            db_data = mangakakalot_scrape(item, manga_list)
-            output_list.append(db_data)
-        else:
-            error_list.append(item.link)
-
-    return (output_list, error_list)

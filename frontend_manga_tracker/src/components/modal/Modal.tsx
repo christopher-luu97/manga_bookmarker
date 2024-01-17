@@ -1,13 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { getStatusColor } from "../status/statusColour";
-import { capitalizeFirstLetterOfEachWord } from "../util/util";
+import {
+  capitalizeFirstLetterOfEachWord,
+  getBaseUrl,
+  isSupportedWebsite,
+} from "../util/util";
 import axios from "axios";
 
 export const Modal: React.FC<{
   mangaData: any[];
   onUpdate: (data: any[]) => void;
   onClose: () => void;
-}> = ({ mangaData, onUpdate, onClose }) => {
+  supportedWebsitesData: string[]; // Add supported websites as a prop
+}> = ({ mangaData, onUpdate, onClose, supportedWebsitesData }) => {
   const [draftData, setDraftData] = useState([...mangaData]);
   const [newLink, setNewLink] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
@@ -38,6 +43,12 @@ export const Modal: React.FC<{
   const handleAdd = () => {
     // Create new data for new records that match the format the backend is expecting
     // There are various placeholders besides newLink
+    if (!isSupportedWebsite(newLink, supportedWebsitesData)) {
+      alert(
+        `The website ${newLink} is not supported. \nSee supported websites on the right pane of the home page`
+      ); // Notify the user
+      return; // Do not proceed with adding the new data
+    }
     const newData = {
       chapter_number: 0, // Placeholder
       id: `new_${Date.now()}`,

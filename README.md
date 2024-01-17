@@ -38,9 +38,9 @@ Git Workflow:
 
 ### API Stuff
 
-- Do checks on data being inserted to handle duplicate records based off of string distance on name so we don't get dupes
+- Do checks on data being inserted to handle duplicate records based off of string distance on name so we don't get dupes ## COMPLETE
 - Add frontend loading screens when waiting for API responses ## COMPLETE
 - Test CRON jobs
-- Add thumbnail searching for mangakakalot
-- Add mangakakalot into the backend scraping mechanism
+- Add thumbnail searching for mangakakalot ## COMPLETE
+- Add mangakakalot into the backend scraping mechanism ## COMPLETE
 - Add website checks for additional data to see if they are in the supported websites.
