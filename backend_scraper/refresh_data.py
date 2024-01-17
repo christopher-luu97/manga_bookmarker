@@ -37,7 +37,10 @@ def webtoon_scrape(item: Dict[str, Any], manga_list: list, mk_scraper: MangaKaka
 
     # Find manga link in MangaKakalot and extract the thumbnail URL
     search_url = mk_scraper.find_manga_link(search_query=db_data["manga_name"])
-    db_data["manga_thumbnail_url"] = mk_scraper.extract_thumbnail(search_url)
+    if search_url:
+        db_data["manga_thumbnail_url"] = mk_scraper.extract_thumbnail(search_url)
+    else:
+        db_data["manga_thumbnail_url"] = "https://NONE"
     return db_data
 
 def mangakakalot_scrape(item: Dict[str, Any], manga_list: list) -> Dict[str, Any]:
