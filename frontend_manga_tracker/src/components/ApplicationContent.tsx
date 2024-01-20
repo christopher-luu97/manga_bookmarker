@@ -5,13 +5,14 @@ import { EditButton } from "./content/EditButton";
 import { ResultsGrid } from "./content/ResultsGrid";
 import { BookmarksList } from "./status/BookmarksList";
 import { Modal } from "./modal/Modal";
-import { mangaPathData as initialMangaData } from "./data/mangaPathData";
 import { RefreshButton } from "./content/refreshButton";
 import { WebsiteData } from "./data/websiteData";
-import { AlphabetFilter } from "./filters/OrderFilter";
+import { AlphabetFilter } from "./filters/AlphabetFilter";
+import { DateFilter } from "./filters/DateFilter";
+import { mangaDataInterface } from "./data/mangaData";
 
 export const ApplicationContent: React.FC = () => {
-  const [mangaData, setMangaData] = useState(initialMangaData);
+  const [mangaData, setMangaData] = useState<mangaDataInterface[]>([]);
   const [isModalOpen, setModalOpen] = useState(false);
   const [refreshData, setRefreshData] = useState(false);
   const [bookmarksData, setBookmarksData] = useState([]);
@@ -21,29 +22,92 @@ export const ApplicationContent: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [sortAlphabetOption, setSortAlpabetOption] = useState("none");
+  const [sortDateOption, setSortDateOption] = useState("none");
 
   const handleSortChange = (newSortOption: string) => {
     setSortAlpabetOption(newSortOption);
   };
 
   const sortedAndFilteredMangaData = useMemo(() => {
-    let sortedData = mangaData;
-    if (sortAlphabetOption !== "none") {
-      if (sortAlphabetOption === "alphabetical") {
+    /**
+     * Memoized function to sort and filter manga data based on specified options.
+     *
+     * This function performs combined sorting, grouping by alphabet, and ordering within groups.
+     * It first sorts the data alphabetically if the option is selected, then groups by alphabet.
+     * After that, it sorts each group by date (newest to oldest) if the date option is selected.
+     *
+     * @returns {mangaDataInterface[]} - Sorted and filtered manga data.
+     */
+    const performSortingAndFiltering = () => {
+      // Initial sorted data is a copy of the mangaData array
+      let sortedData: mangaDataInterface[] = [...mangaData];
+
+      // Sort alphabetically if the option is selected
+      if (sortAlphabetOption !== "none") {
         sortedData = [...mangaData].sort((a, b) =>
-          a.title.localeCompare(b.title)
-        );
-      } else if (sortAlphabetOption === "reverse-alphabetical") {
-        sortedData = [...mangaData].sort((a, b) =>
-          b.title.localeCompare(a.title)
+          sortAlphabetOption === "alphabetical"
+            ? a.title.localeCompare(b.title)
+            : b.title.localeCompare(a.title)
         );
       }
-    }
 
-    return sortedData.filter((manga) =>
-      manga.title.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [mangaData, searchTerm, sortAlphabetOption]);
+      // Group data by alphabet and sort within groups based on date if the date option is selected
+      if (sortDateOption !== "none") {
+        const groupedData: mangaDataInterface[][] = sortedData.reduce(
+          (acc: mangaDataInterface[][], manga) => {
+            const lastGroup = acc[acc.length - 1];
+
+            if (
+              !lastGroup ||
+              (sortAlphabetOption === "alphabetical" &&
+                manga.title.charAt(0).toLowerCase() !==
+                  lastGroup[lastGroup.length - 1].title
+                    .charAt(0)
+                    .toLowerCase()) ||
+              (sortAlphabetOption === "reverse-alphabetical" &&
+                manga.title.charAt(0).toLowerCase() !==
+                  lastGroup[lastGroup.length - 1].title.charAt(0).toLowerCase())
+            ) {
+              // If it's a new group, create a new group with the current manga
+              acc.push([manga]);
+            } else {
+              // If it's the same group, add the manga to the existing group
+              lastGroup.push(manga);
+            }
+
+            return acc;
+          },
+          []
+        );
+
+        // Sort each group based on date and flatten the array
+        sortedData = groupedData
+          .map((group) =>
+            group.sort((a, b) => {
+              const dateA = new Date(a.lastUpdated).getTime();
+              const dateB = new Date(b.lastUpdated).getTime();
+
+              return sortDateOption === "newest-date"
+                ? dateB - dateA
+                : dateA - dateB;
+            })
+          )
+          .flat();
+      }
+
+      // Filter the sorted data based on the search term
+      return sortedData.filter((manga) =>
+        manga.title.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    };
+
+    // Execute the sorting and filtering function, and memoize the result
+    return performSortingAndFiltering();
+  }, [mangaData, searchTerm, sortAlphabetOption, sortDateOption]);
+
+  const handleDateChange = (newSortOption: string) => {
+    setSortDateOption(newSortOption);
+  };
 
   const handleEditButtonClick = () => {
     setModalOpen(true);
@@ -61,12 +125,6 @@ export const ApplicationContent: React.FC = () => {
   const handleSearchChange = (newSearchTerm: string) => {
     setSearchTerm(newSearchTerm);
   };
-
-  // const filteredMangaData = useMemo(() => {
-  //   return mangaData.filter((manga) =>
-  //     manga.title.toLowerCase().includes(searchTerm.toLowerCase())
-  //   );
-  // }, [mangaData, searchTerm]);
 
   // Add use effect to poll backend API for data from database
   useEffect(() => {
@@ -110,8 +168,8 @@ export const ApplicationContent: React.FC = () => {
         {/* TODO Genre, Type, Order Filters */}
 
         {/* <GenreFilter />
-        <TypeFilter />
-        <OrderFilter /> */}
+          <TypeFilter />
+          <OrderFilter /> */}
         <SearchBar
           searchTerm={searchTerm}
           onSearchChange={handleSearchChange}
@@ -129,6 +187,7 @@ export const ApplicationContent: React.FC = () => {
           />
         )}
         <AlphabetFilter onSortChange={handleSortChange} />
+        <DateFilter onSortChange={handleDateChange} />
         <RefreshButton onClick={handleRefreshClick} />
       </div>
 
