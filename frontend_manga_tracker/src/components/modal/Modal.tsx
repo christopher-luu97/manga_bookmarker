@@ -1,11 +1,13 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { getStatusColor } from "../status/statusColour";
 import {
   capitalizeFirstLetterOfEachWord,
-  getBaseUrl,
   isSupportedWebsite,
 } from "../util/util";
 import axios from "axios";
+import { SearchBar } from "../filters/SearchBar";
+import { AlphabetFilter } from "../filters/AlphabetFilter";
+import { mangaDataInterface } from "../data/mangaData";
 
 export const Modal: React.FC<{
   mangaData: any[];
@@ -21,6 +23,12 @@ export const Modal: React.FC<{
   const [isNewRecordAdded, setIsNewRecordAdded] = useState(false); // state to track addition of new record
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [isOverflowing, setIsOverflowing] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortAlphabetOption, setSortAlpabetOption] = useState("none");
+
+  const handleSortChange = (newSortOption: string) => {
+    setSortAlpabetOption(newSortOption);
+  };
 
   useEffect(() => {
     const checkOverflow = () => {
@@ -48,6 +56,39 @@ export const Modal: React.FC<{
       setIsNewRecordAdded(false); // Reset the flag after scrolling
     }
   }, [draftData, isNewRecordAdded]);
+
+  const sortedAndFilteredMangaData = useMemo(() => {
+    /**
+     * Memoized function to sort and filter manga data based on specified options.
+     *
+     * This function performs combined sorting, grouping by alphabet, and ordering within groups.
+     * It first sorts the data alphabetically if the option is selected, then groups by alphabet.
+     * After that, it sorts each group by date (newest to oldest) if the date option is selected.
+     *
+     * @returns {mangaDataInterface[]} - Sorted and filtered manga data.
+     */
+    const performSortingAndFiltering = () => {
+      // Initial sorted data is a copy of the mangaData array
+      let sortedData: mangaDataInterface[] = [...draftData];
+
+      // Sort alphabetically if the option is selected
+      if (sortAlphabetOption !== "none") {
+        sortedData = [...draftData].sort((a, b) =>
+          sortAlphabetOption === "alphabetical"
+            ? a.title.localeCompare(b.title)
+            : b.title.localeCompare(a.title)
+        );
+      }
+
+      // Filter the sorted data based on the search term
+      return sortedData.filter((manga) =>
+        manga.title.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    };
+
+    // Execute the sorting and filtering function, and memoize the result
+    return performSortingAndFiltering();
+  }, [draftData, searchTerm, sortAlphabetOption]);
 
   const scrollToTop = () => {
     tableContainerRef.current?.scrollTo({ top: 0, behavior: "smooth" });
@@ -115,6 +156,10 @@ export const Modal: React.FC<{
     console.log(draftData);
   };
 
+  const handleSearchChange = (newSearchTerm: string) => {
+    setSearchTerm(newSearchTerm);
+  };
+
   return (
     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 backdrop-blur-sm">
       <div
@@ -152,61 +197,80 @@ export const Modal: React.FC<{
               <span className="sr-only">Loading...</span>
             </div>
           )}
-          <div className="bg-[#FAEBEF] flex items-center">
-            <input
-              type="text"
-              value={newLink}
-              onChange={(e) => setNewLink(e.target.value)}
-              className="border p-1 mr-2 rounded flex-grow"
-              placeholder="Enter new manga link"
-            />
-            <button
-              onClick={handleAdd}
-              className="bg-[#333D79] text-white px-2 py-1 rounded hover:bg-[#195190] mr-2"
-              title="Add record"
-            >
-              Add
-            </button>
-            {isOverflowing && (
-              <div className="flex-shrink-0">
+          <div className="bg-[#FAEBEF] flex items-center justify-between">
+            {/* Input and Add Button Container */}
+            <div className="flex-grow p-2 rounded mr-4">
+              <div className="flex items-center">
+                <input
+                  type="text"
+                  value={newLink}
+                  onChange={(e) => setNewLink(e.target.value)}
+                  className="border p-1 rounded mr-2 flex-grow h-10"
+                  placeholder="Enter new manga link"
+                />
                 <button
-                  onClick={scrollToTop}
-                  className="px-2 py-2 bg-[#FAEBEF] text-[#333D79] rounded hover:text-[#195190]"
-                  title="Scroll to top"
+                  onClick={handleAdd}
+                  className="bg-[#333D79] text-white px-2 py-1 rounded hover:bg-[#195190 h-10"
+                  title="Add record"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M18 15l-6-6-6 6" />
-                  </svg>{" "}
-                </button>
-                <button
-                  onClick={scrollToBottom}
-                  className="px-2 py-2 bg-[#FAEBEF] text-[#333D79] rounded hover:text-[#195190]"
-                  title="Scroll to bottom"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M6 9l6 6 6-6" />
-                  </svg>{" "}
+                  Add
                 </button>
               </div>
-            )}
+            </div>
+
+            {/* Search, AlphabetSort, and Scroll Buttons Container */}
+            <div className="flex items-center">
+              <div className="mr-4">
+                <SearchBar
+                  searchTerm={searchTerm}
+                  onSearchChange={handleSearchChange}
+                  disabled={isLoading}
+                />
+              </div>
+              <div className="mr-4">
+                <AlphabetFilter onSortChange={handleSortChange} />
+              </div>
+              {isOverflowing && (
+                <div className="flex-shrink-0">
+                  <button
+                    onClick={scrollToTop}
+                    className="px-2 py-2 bg-[#FAEBEF] text-[#333D79] rounded hover:text-[#195190]"
+                    title="Scroll to top"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M18 15l-6-6-6 6" />
+                    </svg>{" "}
+                  </button>
+                  <button
+                    onClick={scrollToBottom}
+                    className="px-2 py-2 bg-[#FAEBEF] text-[#333D79] rounded hover:text-[#195190]"
+                    title="Scroll to bottom"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M6 9l6 6 6-6" />
+                    </svg>{" "}
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
         <div className="max-h-96 overflow-y-auto" ref={tableContainerRef}>
@@ -221,7 +285,7 @@ export const Modal: React.FC<{
               </tr>
             </thead>
             <tbody className="bg-[#FAEBEF]">
-              {draftData
+              {sortedAndFilteredMangaData
                 .filter((item) => item.status !== "Delete")
                 .map((manga, index) => (
                   <tr
