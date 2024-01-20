@@ -17,7 +17,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
       value={searchTerm}
       onChange={(e) => onSearchChange(e.target.value)}
       disabled={disabled}
-      placeholder="Search..."
+      placeholder="Search Manga"
       className="p-2 border border-gray-300 rounded w-full md:w-auto"
     />
   );
