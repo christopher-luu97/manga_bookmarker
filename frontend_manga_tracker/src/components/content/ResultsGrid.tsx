@@ -1,40 +1,17 @@
 // src/components/ResultsGrid.tsx
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import { capitalizeFirstLetterOfEachWord } from "../util/util"; // import { mangaData } from "../data/mangaData";
 
 interface ResultsGridProps {
   mangaData: any[];
-  isDataUpdated: boolean;
 }
 
-export const ResultsGrid: React.FC<ResultsGridProps> = ({
-  mangaData,
-  isDataUpdated,
-}) => {
+export const ResultsGrid: React.FC<ResultsGridProps> = ({ mangaData }) => {
   const itemsPerRow = 5; // Adjust based on your grid setup
   const initialRows = 2;
   const initialItemCount = itemsPerRow * initialRows;
   const [visibleItems, setVisibleItems] = useState(initialItemCount);
-  const prevMangaDataRef = useRef(mangaData);
-
-  useEffect(() => {
-    if (isDataUpdated) {
-      prevMangaDataRef.current = mangaData;
-    }
-  }, [isDataUpdated, mangaData]);
-
-  const getUpdatedMangaData = () => {
-    return mangaData.map((manga) => {
-      const prevManga = prevMangaDataRef.current.find((m) => m.id === manga.id);
-      return isDataUpdated &&
-        prevManga &&
-        prevManga.chapter_number !== manga.chapter_number
-        ? { ...manga, isNewChapter: true }
-        : manga;
-    });
-  };
-
-  const updatedMangaData = getUpdatedMangaData();
+  const currentDate = new Date().toLocaleDateString(); // Get current date in YYYY-MM-DD format
 
   const showMore = () => {
     setVisibleItems(
@@ -44,6 +21,13 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({
 
   const showLess = () => {
     setVisibleItems(initialItemCount);
+  };
+
+  const shouldApplyGlow = (mangaLastUpdated: string) => {
+    const mangaDate = new Date(mangaLastUpdated);
+    const formattedMangaDate = mangaDate.toLocaleDateString("en-US");
+    const formattedCurrentDate = new Date().toLocaleDateString("en-US");
+    return formattedMangaDate === formattedCurrentDate;
   };
 
   if (mangaData.length === 0) {
@@ -67,14 +51,17 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4 p-4 border border-gray-200 shadow-lg rounded-lg overflow-hidden bg-[#FAEBEF]">
-        {updatedMangaData.slice(0, visibleItems).map((manga) => (
+        {mangaData.slice(0, visibleItems).map((manga) => (
           <div
             title={`${manga.title} - Chapter ${manga.chapter_number}`}
             key={manga.id}
-            className={`border shadow-lg rounded-lg overflow-hidden transform transition duration-300 ease-in-out hover:scale-105 border-gray-700 ${
-              manga.isNewChapter ? "border-glow" : ""
-            }`}
+            className={`border shadow-lg rounded-lg overflow-hidden transform transition duration-300 ease-in-out hover:scale-105 border-gray-700 relative`}
           >
+            {shouldApplyGlow(manga.lastUpdated) && (
+              <div className="absolute top-2 right-2 bg-yellow-500 text-white px-2 py-1 rounded-full">
+                Updated
+              </div>
+            )}
             <a
               href={manga.link}
               target="_blank"
