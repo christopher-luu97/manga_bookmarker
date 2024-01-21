@@ -2,9 +2,9 @@ import bs4
 import requests
 import re
 import time
+import jellyfish
 from urllib.parse import urlparse
 from typing import Optional, List, Dict, Union, Any, Tuple
-import jellyfish
 
 class MangaScraper:
     def __init__(self, manga_list: List[dict]):
@@ -130,16 +130,16 @@ class MangaScraper:
         """
         raise NotImplementedError("Subclasses should implement this method")
 
-    def extract_thumbnail(self, url:str):
+    def extract_thumbnail(self, url:str) -> str:
         """
         Method to extract thumbnail from MangaKakalot if it exists.
         Method can be overriden by inheriting classes if thumbnails exists that we can scrape
 
         Args:
-            url (str): _description_
+            url (str): URL to scrape from
 
         Returns:
-            _type_: _description_
+            str: the image tag as a str or error strings
         """
         response = requests.get(url)
         if response.status_code == 200:
@@ -167,7 +167,7 @@ class MangaScraper:
             url (str): Main manga link
 
         Raises:
-            NotImplementedError: _description_
+            NotImplementedError: Error to indicate this method for inherited classes has not been implemented
 
         Returns:
             Dict: Object containing the data object to be inserted into the database
@@ -182,7 +182,7 @@ class MangaScraper:
             url (str): Main manga link
 
         Raises:
-            NotImplementedError: _description_
+            NotImplementedError: Error to indicate this method for inherited classes has not been implemented
 
         Returns:
             Dict: Object containing the data object to be inserted into the database
@@ -197,7 +197,7 @@ class MangaScraper:
             url (str): Main manga link
 
         Raises:
-            NotImplementedError: _description_
+            NotImplementedError: Error to indicate this method for inherited classes has not been implemented
 
         Returns:
             Dict: Object containing the data object to be inserted into the database
@@ -315,15 +315,15 @@ class MangaKakalotScraper(MangaScraper):
         return None
     
 
-    def extract_name(self, url:str):
+    def extract_name(self, url:str) -> str:
         """
         Get name from website via scraping
 
         Args:
-            url (str): _description_
+            url (str): URL of website to scrape from
 
         Returns:
-            _type_: _description_
+            str: Name of website or error
         """
         response = requests.get(url)
 
@@ -337,7 +337,7 @@ class MangaKakalotScraper(MangaScraper):
                     return h1_tag.get_text().strip()
         return "Manga title not found"
     
-    def extract_manga_path(self, url:str):
+    def extract_manga_path(self, url:str) -> str:
         """
         Extract manga path from url. 
         
@@ -345,10 +345,10 @@ class MangaKakalotScraper(MangaScraper):
         Example output: /manga-ax951880
 
         Args:
-            url (str): _description_
+            url (str): URL of website to scrape from
 
         Returns:
-            _type_: _description_
+            str: Manga path which exists after the domain/ or error
         """
         # Regular expression to extract everything after '.com'
         match = re.search(r'https?://[^/]+(/.*)', url)
@@ -358,12 +358,15 @@ class MangaKakalotScraper(MangaScraper):
         else:
             return "No match found"
 
-    def extract_latest_chapter(self, url:str):
+    def extract_latest_chapter(self, url:str) -> Tuple[Tuple, str]:
         """
         Grab the link to the latest chapter
 
         Args:
-            url (str): _description_
+            url (str): URL of website to scrape from
+
+        Returns:
+            tuple(tuple, str): Returns a tuple of various parsed objects and a status code
         """
         response = requests.get(url)
         if response.status_code == 200:
@@ -371,12 +374,15 @@ class MangaKakalotScraper(MangaScraper):
             return self.parse_html(soup, self.base_url, url), response.status_code
     
     ##TODO: Page number on viz is rendered dynamically through JS which can't be fetched with bs4 or requests
-    def extract_chapter_length(self, url:str):
+    def extract_chapter_length(self, url: str) -> Union[int, str]:
         """
         URL comes from latest_chapter in parse_html_obj[0] from self.extract_latest_chapter
 
         Args:
-            url (_type_): _description_
+            url (str): URL of website to scrape from
+
+        Returns:
+            Union[int, str]: Either the extracted integer chapter length or a string indicating no integer found or div not found.
         """
          # Parse the HTML content
         soup = bs4.BeautifulSoup(url, 'html.parser')
@@ -397,7 +403,7 @@ class MangaKakalotScraper(MangaScraper):
         else:
             return "Div not found"
         
-    def get_latest_chapter(self, url: str):
+    def get_latest_chapter(self, url: str) -> Union[str, None]:
         """
         Grabs only the latest chapter from a given URL.
 
@@ -420,15 +426,16 @@ class MangaKakalotScraper(MangaScraper):
             print(f"Error occurred while fetching the latest chapter: {e}")
             return None
 
-    def create_record(self, url:str, base_url:str) -> Dict:
+    def create_record(self, url: str, base_url: str) -> Dict[str, Any]:
         """
         This method is used for first time additions of new manga.
 
         Args:
-            url (str): _description_
+            url (str): The URL of the manga page.
+            base_url (str): The base URL of the manga website.
 
         Returns:
-            _type_: _description_
+            Dict[str, Any]: A dictionary containing the manga record details.
         """
         parse_html_obj, response_code = self.extract_latest_chapter(url)
         record = {
@@ -518,15 +525,15 @@ class vizScraper(MangaScraper):
             return None, None, 'Div with id "chpt_rows" not found'
         
 
-    def extract_name(self, url:str):
+    def extract_name(self, url: str) -> str:
         """
-        Viz manga always has name at the end
+        Extracts the manga name from the URL.
 
         Args:
-            url (str): _description_
+            url (str): The URL of the manga page.
 
         Returns:
-            _type_: _description_
+            str: The extracted manga name.
         """
         # Regular expression to extract the part after the last '/'
         match = re.search(r'/([^/]*)/?$', url)
@@ -538,16 +545,15 @@ class vizScraper(MangaScraper):
         else:
             return "No match found"
     
-    def extract_manga_path(self, url:str):
+    def extract_manga_path(self, url: str) -> str:
         """
-        Extract manga path from url. 
-        
+        Extracts the manga path from the URL.
 
         Args:
-            url (str): _description_
+            url (str): The URL of the manga page.
 
         Returns:
-            _type_: _description_
+            str: The extracted manga path.
         """
         # Regular expression to extract everything after '.com'
         match = re.search(r'\.com(.*)', url)
@@ -558,27 +564,33 @@ class vizScraper(MangaScraper):
         else:
             return "No match found"
 
-    def extract_latest_chapter(self, url:str):
+    def extract_latest_chapter(self, url: str) -> Tuple:
         """
-        Grab the link to the latest chapter
+        Grabs the link to the latest chapter.
 
         Args:
-            url (str): _description_
+            url (str): The URL of the manga page.
+
+        Returns:
+            Tuple: A tuple containing the result of parse_html and the HTTP response status code.
         """
         response = requests.get(url)
         if response.status_code == 200:
             soup = bs4.BeautifulSoup(response.content, 'html.parser')
             return self.parse_html(soup, self.base_url, url), response.status_code
-    
-    ##TODO: Page number on viz is rendered dynamically through JS which can't be fetched with bs4 or requests
-    def extract_chapter_length(self, url:str):
+
+    ## TODO: Page number on viz is rendered dynamically through JS, which can't be fetched with bs4 or requests
+    def extract_chapter_length(self, url: str) -> int:
         """
-        URL comes from latest_chapter in parse_html_obj[0] from self.extract_latest_chapter
+        Extracts the length of the manga chapter.
 
         Args:
-            url (_type_): _description_
+            url (str): The URL of the manga chapter.
+
+        Returns:
+            int: The number of pages in the manga chapter.
         """
-         # Parse the HTML content
+        # Parse the HTML content
         soup = bs4.BeautifulSoup(url, 'html.parser')
         
         # Find the <div> with the specific class
@@ -593,41 +605,43 @@ class vizScraper(MangaScraper):
             if match:
                 return int(match.group(0))
             else:
-                return "No integer found in the text"
+                return 0  # Default value if no integer found in the text
         else:
-            return "Div not found"
+            return 0  # Default value if <div> not found
         
-    def create_record(self, url:str) -> Dict:
+    def create_record(self, url: str) -> Dict:
         """
-        This method is used for first time additions of new manga.
-        Each record will contain all the data required for database insertion
+        Creates a record for a new manga.
 
         Args:
-            url (str): _description_
+            url (str): The URL of the manga page.
 
         Returns:
-            _type_: _description_
+            Dict: A dictionary containing all the data required for database insertion.
         """
         parse_html_obj, response_code = self.extract_latest_chapter(url)
         record = {
-            "manga_name": self.extract_name(url), # Get the manga name
+            "manga_name": self.extract_name(url),  # Get the manga name
             "manga_path": self.extract_manga_path(url),
             "chapter_url": parse_html_obj[0],
-            "date_checked":time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())), # Convert epoch time to ymdhms
+            "date_checked": time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())),  # Convert epoch time to ymdhms
             "number_of_pages": 0 if self.extract_chapter_length(parse_html_obj[0]) == "Div not found" else self.extract_chapter_length(parse_html_obj[0]),
-            "chapter_url_status":response_code,
+            "chapter_url_status": response_code,
             "manga_thumbnail_url": self.extract_thumbnail(url),
             "website_url": self.get_base_url(parse_html_obj[0]),
             "chapter_number": self.get_chapter_number(parse_html_obj[0])
         }
         return record
     
-    def get_chapter_number(self, url:str):
+    def get_chapter_number(self, url: str) -> int:
         """
-        Get chapter number from link
+        Get the chapter number from the link.
 
         Args:
-            url (str): _description_
+            url (str): The URL of the manga chapter.
+
+        Returns:
+            int: The chapter number if found, otherwise None.
         """
         pattern = r"chapter-(\d+)"
         match = re.search(pattern, url)
@@ -635,15 +649,15 @@ class vizScraper(MangaScraper):
         # Return the matched group (digits after "chapter-") if found
         return int(match.group(1)) if match else None
 
-    def extract_thumbnail(self, url:str):
+    def extract_thumbnail(self, url: str) -> str:
         """
-        Extract the thumbnail from the website
+        Extract the thumbnail URL from the website.
 
         Args:
-            url (str): string url of the website
+            url (str): The URL of the manga page.
 
         Returns:
-            _type_: _description_
+            str: The URL of the manga thumbnail if found, otherwise an error message.
         """
         response = requests.get(url)
         if response.status_code == 200:
@@ -686,15 +700,15 @@ class webtoonScraper(MangaScraper):
         else:
             return None, None, 'Ul with id "_listUl" not found'
         
-    def extract_name(self, url:str):
+    def extract_name(self, url:str) -> str:
         """
-        Viz manga always has name at the end
+        Extracts the manga name from the URL.
 
         Args:
-            url (str): _description_
+            url (str): The URL of the manga page.
 
         Returns:
-            _type_: _description_
+            str: The extracted manga name.
         """
         # REGEX as we know the name apears after the third / in the url
         match = re.search(r'www.webtoons.com/[^/]+/[^/]+/([^/]+)/', url)
@@ -706,16 +720,15 @@ class webtoonScraper(MangaScraper):
         else:
             return "No match found"
     
-    def extract_manga_path(self, url:str):
+    def extract_manga_path(self, url: str) -> str:
         """
-        Extract manga path from url. 
-        
+        Extracts the manga path from the URL.
 
         Args:
-            url (str): _description_
+            url (str): The URL of the manga page.
 
         Returns:
-            _type_: _description_
+            str: The extracted manga path.
         """
         # Regular expression to extract everything after '.com'
         match = re.search(r'\.com(.*)', url)
@@ -726,12 +739,15 @@ class webtoonScraper(MangaScraper):
         else:
             return "No match found"
 
-    def extract_latest_chapter(self, url:str):
+    def extract_latest_chapter(self, url: str) -> Tuple:
         """
-        Grab the link to the latest chapter
+        Grabs the link to the latest chapter.
 
         Args:
-            url (str): _description_
+            url (str): The URL of the manga page.
+
+        Returns:
+            Tuple: A tuple containing the result of parse_html and the HTTP response status code.
         """
         response = requests.get(url)
         if response.status_code == 200:
@@ -752,15 +768,15 @@ class webtoonScraper(MangaScraper):
         ## method
         return 0
     
-    def create_record(self, url:str) -> Dict:
+    def create_record(self, url: str) -> Dict:
         """
-        This method is used for first time additions of new manga.
+        Creates a record for a new manga.
 
         Args:
-            url (str): _description_
+            url (str): The URL of the manga page.
 
         Returns:
-            _type_: _description_
+            Dict: A dictionary containing all the data required for database insertion.
         """
         parse_html_obj, response_code = self.extract_latest_chapter(url)
         record = {
@@ -777,12 +793,15 @@ class webtoonScraper(MangaScraper):
         return record
     
 
-    def get_chapter_number(self, url:str):
+    def get_chapter_number(self, url: str) -> int:
         """
-        Get chapter number from link
+        Get the chapter number from the link.
 
         Args:
-            url (str): _description_
+            url (str): The URL of the manga chapter.
+
+        Returns:
+            int: The chapter number if found, otherwise None.
         """
         # Regex pattern to find digits after "episode-"
         pattern = r"episode_no=(\d+)"

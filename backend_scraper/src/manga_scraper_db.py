@@ -1,11 +1,12 @@
 import psycopg2
 import uuid
-from datetime import datetime
-from typing import Dict, List, Any
 import json
-from psycopg2 import OperationalError
 import re
 import jellyfish # For string distance matching. See: https://github.com/jamesturk/jellyfish
+import os
+from psycopg2 import OperationalError
+from datetime import datetime
+from typing import Dict, List, Any
 
 
 class MangaScraperDB:
@@ -14,12 +15,13 @@ class MangaScraperDB:
     """
     def __init__(self):
         try:
-            #credentials = self.read_db_credentials("/secrets/db_config.json") ## To change into environ reading
+            creds_path = os.path.join(os.getcwd(),"src/secrets/db_config.json")
+            credentials = self.read_db_credentials(creds_path) ## To change into environ reading
             self.conn = psycopg2.connect(
-                host= "localhost", # credentials["host"],
-                database= "manga_tracker", # credentials["database"],
-                user="postgres", # credentials["user"],
-                password="Password" # credentials["password"]
+                host= credentials["host"],
+                database= credentials["database"],
+                user= credentials["user"],
+                password= credentials["password"]
             )
         except OperationalError as e:
             print(f"Error connecting to PostgreSQL database: {e}")
@@ -35,7 +37,7 @@ class MangaScraperDB:
             filename (str): name of the .json config file.
 
         Returns:
-            _type_: _description_
+            Dict: Dict structure of database credentials
         """
         with open(filename, 'r') as file:
             return json.load(file)
@@ -55,9 +57,9 @@ class MangaScraperDB:
         pattern = r"https?://(?:www\.)?([a-zA-Z0-9-]+)\.[a-zA-Z]+"
         match = re.search(pattern, url)
         if match:
-            return match.group(1)  # Return the captured website name
+            return match.group(1) 
         else:
-            return None  # Return None if no match is found
+            return None
 
     def insert_website(self, website_url:str, website_status:str):
         """
@@ -114,11 +116,11 @@ class MangaScraperDB:
         """
         try:
             with self.conn.cursor() as cur:
-                cur.execute("SELECT manga_id, manga_name FROM manga_table")
+                cur.execute("SELECT manga_id, manga_name FROM manga_table") # TODO: Best to run this as a stored proc instead
                 for row in cur.fetchall():
                     existing_manga_id, existing_manga_name = row
                     similarity = jellyfish.jaro_similarity(manga_name.lower(), existing_manga_name.lower())
-                    if similarity > 0.85:  # Adjust threshold as needed
+                    if similarity > 0.85:
                         return existing_manga_id
                 return None
         except Exception as e:
@@ -150,6 +152,13 @@ class MangaScraperDB:
 
     # TODO: Edit the genre insert as this will be a dictionary containing a list
     def insert_manga_genre(self, manga_id:str, genre:Dict):
+        """
+        Insert the manga genres related to the manga by manga id
+
+        Args:
+            manga_id (str): ID of manga to have its genres inserted
+            genre (Dict): Dictionary of genres
+        """
         try:
             with self.conn.cursor() as cur:
                 cur.execute("CALL insert_manga_genre(%s, %s, %s)", 
@@ -288,6 +297,9 @@ class MangaScraperDB:
     def get_bookmarks_data(self) -> List[Dict[str, Any]]:
         """
         Method to retrieve data in the format to present on the frontend bookmarks component
+
+        Returns:
+            List[Dict[str, Any]]: List of dictionaries containing data to be presented to frontend in response
         """
         try:
             with self.conn.cursor() as cur:
@@ -313,6 +325,9 @@ class MangaScraperDB:
         """
         Method to retrieve data in the format to present on the frontend bookmarks component
         Specifically the supported websites section
+
+        Returns:
+            List[Dict[str, Any]]: List of dictionaries containing data to be presented to frontend in response
         """
         try:
             with self.conn.cursor() as cur:
@@ -334,7 +349,17 @@ class MangaScraperDB:
     def is_thumbnail_exists(self, manga_id: str, website_id: str, manga_path_id: str, thumbnail_url: str) -> bool:
         """
         Check if a thumbnail URL already exists in the database.
+
+        Args:
+            manga_id (str): ID of manga to check in database
+            website_id (str): ID of website related to the manga from database
+            manga_path_id (str): ID of the manga path for the manga
+            thumbnail_url (str): str url for the thumbnail image
+
+        Returns:
+            bool: True or False to trigger database insertion
         """
+
         try:
             with self.conn.cursor() as cur:
                 cur.execute("SELECT check_thumbnail_exists(%s, %s, %s, %s)",
@@ -348,6 +373,12 @@ class MangaScraperDB:
     def is_chapter_url_exists(self, manga_id: str, website_id: str, manga_path_id: str, chapter_url: str) -> bool:
         """
         Check if a chapter URL already exists in the database.
+
+        Args:
+            manga_id (str): ID of manga to check in database
+            website_id (str): ID of website related to the manga from database
+            manga_path_id (str): ID of the manga path for the manga
+            chapter_url (str): Complete chapter url for the manga of interest
         """
         try:
             with self.conn.cursor() as cur:

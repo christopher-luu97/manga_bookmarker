@@ -12,7 +12,7 @@ class MangaScraperService:
         Runner function to scrape and do all the backend stuff
 
         Args:
-            manga_list (_type_): _description_
+            manga_list (_type_): List of manga
 
         Returns:
             tuple(db_data, error_list): Returns the db object to be upserted into the backend and the error list to present to frontend.
@@ -44,7 +44,7 @@ class MangaScraperService:
         Potentially scrape concurrently for N records.
 
         Args:
-            manga_list (_type_): _description_
+            manga_list (MangaList): List of manga
         """
         # From the provided manga list
         # Need to identify all the new ones can create new data structure for them
@@ -110,7 +110,7 @@ class MangaScraperService:
         Bulk insert records then close at the end
 
         Args:
-            output_list (List[Dict[str, Any]]): _description_
+            output_list (List[Dict[str, Any]]): List of results to be inserted into the database
         """
         ms_db = MangaScraperDB()
         for item in output_list:
@@ -219,10 +219,10 @@ class MangaScraperService:
 
                 for row in rows:
                     manga_list.append(MangaRecord(
-                        id=str(row[0]),  # Assuming this is the manga_path_id
-                        lastChecked="N/A",  # Placeholder, as the actual date is not part of this query
-                        link=row[3],  # This is the full path
-                        status='Good',  # Assuming default status
+                        id=str(row[0]),
+                        lastChecked="N/A",
+                        link=row[3],
+                        status='Good',
                         title=row[2]  
                     ))
         except Exception as e:
@@ -256,6 +256,3 @@ class MangaScraperService:
                 error_list.append(item.link)
 
         return (output_list, error_list)
-
-# Instantiate MangaScraperService
-manga_scraper_service = MangaScraperService()
