@@ -1,7 +1,13 @@
 import React from "react";
 
-export const RefreshButton: React.FC<{ onClick: () => void }> = ({
+interface RefreshButtonProps {
+  onClick: () => void;
+  disabled?: boolean;
+}
+
+export const RefreshButton: React.FC<RefreshButtonProps> = ({
   onClick,
+  disabled,
 }) => {
   return (
     <div className="relative inline-block">
@@ -9,6 +15,7 @@ export const RefreshButton: React.FC<{ onClick: () => void }> = ({
         title="Refresh Data"
         onClick={onClick}
         className="inline-block p-2 border border-gray-300 rounded bg-[#FAEBEF] text-[#333D79] hover:bg-gradient-to-r hover:from-[#FAEBEF] hover:to-[#FADCE6] cursor-pointer transition ease-in duration-200"
+        disabled={disabled}
       >
         <svg
           fill="#000000"

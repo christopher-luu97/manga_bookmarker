@@ -186,9 +186,9 @@ export const ApplicationContent: React.FC = () => {
             )} // Assuming each website object has a `link` property
           />
         )}
-        <AlphabetFilter onSortChange={handleSortChange} />
-        <DateFilter onSortChange={handleDateChange} />
-        <RefreshButton onClick={handleRefreshClick} />
+        <AlphabetFilter onSortChange={handleSortChange} disabled={isLoading} />
+        <DateFilter onSortChange={handleDateChange} disabled={isLoading} />
+        <RefreshButton onClick={handleRefreshClick} disabled={isLoading} />
       </div>
 
       <div className="flex flex-col md:flex-row gap-4 md:gap-8">

@@ -229,6 +229,7 @@ class MangaScraperService:
             print(f"Error querying websites: {e}")
 
         ms_db.close_connection()
+        return manga_list
 
     def scrape_existing_records(self, manga_list: List[MangaRecord]) -> Tuple[List[Dict[str, Any]], List[str]]:
         """
