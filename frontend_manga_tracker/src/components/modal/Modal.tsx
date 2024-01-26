@@ -104,9 +104,12 @@ export const Modal: React.FC<{
   const handleConfirm = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.post("http://192.168.8.167:8000/", {
-        manga_records: draftData,
-      });
+      const response = await axios.post(
+        "http://192.168.8.167:8000/insert_record",
+        {
+          manga_records: draftData,
+        }
+      );
       if (response.data) {
         setSuccessMessage(response.data.db_upload_status);
         onUpdate(draftData);

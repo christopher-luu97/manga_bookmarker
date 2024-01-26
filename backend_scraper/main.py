@@ -19,7 +19,7 @@ app.add_middleware(
 # Instantiate MangaScraperService
 manga_scraper_service = MangaScraperService()
 
-@app.post("/")
+@app.post("/insert_record")
 async def update_manga_list(manga_list: MangaList):
     """
     Endpoint to update the manga list.
@@ -38,7 +38,7 @@ async def update_manga_list(manga_list: MangaList):
 
     return {
         "message": "Successfully confirmed", 
-        "url": "http://127.0.0.1:8000/", 
+        "url": "http://127.0.0.1:8000/insert_record", 
         "confirmation": response,
         "db_upload_status": insert_record_response
     }
