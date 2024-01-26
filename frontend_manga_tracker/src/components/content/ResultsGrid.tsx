@@ -11,7 +11,6 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({ mangaData }) => {
   const initialRows = 2;
   const initialItemCount = itemsPerRow * initialRows;
   const [visibleItems, setVisibleItems] = useState(initialItemCount);
-  const currentDate = new Date().toLocaleDateString(); // Get current date in YYYY-MM-DD format
 
   const showMore = () => {
     setVisibleItems(
