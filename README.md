@@ -1,47 +1,34 @@
-System Process
 
-1. Backend CRON job calls Python script to scrape data into database
-2. Database gets updated from CRON web scrape
-3. User gets notified of latest changes in email
-4. User browses to website and logs in
-5. User can now observes latest changes
+# Manga Tracking Application
 
-Project Workflow:
+## Introduction
+Welcome to my Manga Tracking Application GitHub repository! This project is designed to streamline the process of tracking manga series. It solves the common challenge of managing a growing list of manga titles by providing a personalized platform for efficiently checking updates.
 
-1. Track features, issues etc. using Github projects
-2. Names are for example frontend-epic-0001-X where X defines what the epic is
-   - The epic in the comments should identify what features should be associated
-   - We can then break down the associated features into their own tickets
-3. Features are tied to an epic id e.g. frontend-epic-0001-X-submit-button
-   - These features are in the comments of the epic
-4. Make changes in code and update the ticket to point to the branch and/or PR
-5. Resolve tickets / update them as we chug along
+## Project Overview
+The application is rooted in CRUD (Create, Read, Update, Delete) operations and features a user-friendly interface that displays data stored in a database. It's developed using a combination of technologies to ensure a seamless user experience.
 
-Git Workflow:
+### Frontend
+- **Technologies Used**: React, TailwindCSS, TypeScript
+- **Functionality**: The frontend provides an interactive interface for managing the manga list, including adding new links, updating records, and viewing the latest chapters.
 
-1. Create a branch that takes in an issue name e.g. git checkout -b frontend-epic-0002-feature-0001-scrollable-list
-2. Make edits in this branch
-3. Commit to this branch
-4. Push changes to this remote e.g. git push origin frontend-epic-0002-feature-0001-scrollable-list
-5. Create pull request in github
-6. Review
-7. Merge if okay
-8. Resolve ticket in github projects and add comment pointing to the PR of interest
+### Backend
+- **Technologies Used**: Python, FastAPI, Django (in-progress)
+- **Functionality**: The backend handles API requests and data processing. `backend_scraper` uses FastAPI for efficient data handling and web scraping, while `backend_manga_tracker` is an in-progress module using Django.
 
-## DB Schema to be built
+### Database
+- **Database Technology**: PostgreSQL
+- **Role**: Stores and manages data related to manga series, including chapter URLs, thumbnails, and websites.
 
-<div align="center">
-    <img src="/assets/images/20231222_db_schema_v1.PNG?raw=true"</img> 
-</div>
+## Key Features
+- Web scraping for manga data updates.
+- CRUD operations for manga list management.
+- Sorting and filtering options for easy navigation.
 
-## Fixes
+## Learning Journey
+This project has been a journey through web scraping, database management, and UI/UX considerations. Check out the links below for a detailed breakdown of my development process and challenges faced:
 
-### API Stuff
+- **Medium Article**: [https://medium.com/@cluu.codes1337/building-a-manga-tracking-application-journey-and-design-6fd7d7d68655](#)
+- **YouTube Video Showcase**: [https://www.youtube.com/watch?v=4EDpw_qhb-A&ab_channel=chriscodes](#)
 
-- Do checks on data being inserted to handle duplicate records based off of string distance on name so we don't get dupes ## COMPLETE
-- Add frontend loading screens when waiting for API responses ## COMPLETE
-- Test CRON jobs
-- Add thumbnail searching for mangakakalot ## COMPLETE
-- Add mangakakalot into the backend scraping mechanism ## COMPLETE
-- Add website checks for additional data to see if they are in the supported websites. ## Complete
-- Add a highlight on border that is animated if it is a new chapter AND re-arrange their display to be ordered by latest chapter
+## Contributing
+Feel free to explore the code, provide feedback, and contribute to the project. Any suggestions or contributions are welcome!
