@@ -130,16 +130,16 @@ export const ApplicationContent: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get("http://192.168.8.167:8000/get_data");
+        const response = await axios.get("http://192.168.8.167:8000/get_data"); //"http://192.168.8.167:8000/get_data"
         setMangaData(response.data);
 
         const bookmarksResponse = await axios.get(
-          "http://192.168.8.167:8000/get_bookmarks_data"
+          "http://192.168.8.167:8000/get_bookmarks_data" //"http://192.168.8.167:8000/get_bookmarks_data"
         );
         setBookmarksData(bookmarksResponse.data);
 
         const supportedWebsiteResponse = await axios.get(
-          "http://192.168.8.167:8000/get_supported_websites"
+          "http://192.168.8.167:8000/get_supported_websites" //"http://192.168.8.167:8000/get_supported_websites"
         );
         setSupportedWebsitesData(supportedWebsiteResponse.data);
       } catch (error) {
