@@ -3,7 +3,7 @@ import requests
 import re
 import time
 import jellyfish
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urljoin
 from typing import Optional, List, Dict, Union, Any, Tuple
 
 class MangaScraper:
@@ -203,35 +203,6 @@ class MangaScraper:
             Dict: Object containing the data object to be inserted into the database
         """
         raise NotImplementedError("Subclasses should implement this method")
-
-
-
-class TcbScansScraper(MangaScraper):
-    def parse_html(self, soup: bs4.BeautifulSoup, base_url: str, complete_url: str) -> Tuple[Optional[str], Optional[str], str]:
-        """
-        Parses the HTML content from TCBScans website.
-
-        Args:
-            soup (bs4.BeautifulSoup): Parsed HTML content.
-            base_url (str): Base URL of TCBScans website.
-            complete_url (str): Complete URL of the manga page.
-
-        Returns:
-            Tuple[Optional[str], Optional[str], str]: Returns the most recent URL, the href, and the chapter value or error message.
-        """       
-        a_tag = soup.find('a', class_='block border border-border bg-card mb-3 p-3 rounded')
-        if a_tag:
-            href = a_tag.get('href')
-            most_recent_url = self.normalize_url(base_url + href)
-            chapter_value = self.extract_last_part(most_recent_url)
-            print(f"Complete url: {complete_url}")
-            return most_recent_url, href, chapter_value
-        else:
-            return None, None, 'Tag not found'
-    
-    def create_record(self, url: str) -> Dict:
-        return super().create_record(url)
-    
         
 class MangaKakalotScraper(MangaScraper):
     def __init__(self, manga_list: List[dict]):
@@ -450,48 +421,6 @@ class MangaKakalotScraper(MangaScraper):
             "chapter_number": parse_html_obj[2]
         }
         return record
-
-
-class MangaDemonScraper(MangaScraper):
-    def parse_html(self, soup: bs4.BeautifulSoup, base_url: str, complete_url: str) -> Tuple[Optional[str], Optional[str], str]:
-        """
-        Parses the HTML content from MangaDemon website.
-
-        Args:
-            soup (bs4.BeautifulSoup): Parsed HTML content.
-            base_url (str): Base URL of MangaDemon website.
-            complete_url (str): Complete URL of the manga page.
-
-        Returns:
-            Tuple[Optional[str], Optional[str], str]: Returns the most recent URL, the href, and the chapter value or error message.
-        """
-        ul_tag = soup.find('ul', class_='chapter-list')
-
-        if ul_tag:
-            li_tag = ul_tag.find('li')
-
-            if li_tag:
-                a_tag = li_tag.find('a', href=True)
-
-                if a_tag:
-                    href = a_tag['href']
-                    chapter_match = re.search(r'chapter/([0-9a-zA-Z-]+)', href)
-
-                    if chapter_match:
-                        chapter_value = chapter_match.group(1)
-                        full_link = self.normalize_url(base_url + href)
-                        return full_link, href, chapter_value
-
-                    return base_url + href, href, 'Chapter value not found'
-
-                return None, None, '<a> tag not found'
-
-            return None, None, '<li> tag not found'
-
-        return None, None, '<ul> tag with class "chapter-list" not found'
-
-    def create_record(self, url: str) -> Dict:
-        return super().create_record(url)
     
 class vizScraper(MangaScraper):
     def __init__(self, manga_list: List[dict]):
@@ -809,6 +738,155 @@ class webtoonScraper(MangaScraper):
         
         # Return the matched group (digits after "episode-") if found
         return int(match.group(1)) if match else None
+    
+class ComickScraper:
+    """
+    A specialized scraper for extracting manga details from comick.cc.
+
+    Attributes:
+        manga_list (List[Dict]): A list of dictionaries containing manga details.
+        base_url (str): The base URL of the comick.cc website.
+    """
+
+    def __init__(self, manga_list: list):
+        """
+        Initializes the ComickScraper with a list of manga.
+
+        Args:
+            manga_list (List[dict]): List of manga with their details.
+        """
+        self.manga_list = manga_list
+        self.base_url = "https://comick.cc"
+
+    def extract_name(self, url: str) -> str:
+        """
+        Extracts the manga name from the provided URL.
+
+        Args:
+            url (str): URL of the manga page.
+
+        Returns:
+            str: The name of the manga or an error message if not found.
+        """
+        response = requests.get(url)
+        if response.status_code == 200:
+            soup = bs4.BeautifulSoup(response.content, 'html.parser')
+            h1_tag = soup.find('h1')
+            if h1_tag:
+                return h1_tag.text.strip()
+        return "Manga title not found"
+
+    def extract_manga_path(self, url: str) -> str:
+        """
+        Extracts the manga path from the URL.
+
+        Args:
+            url (str): The full URL of the manga page.
+
+        Returns:
+            str: The path of the manga.
+        """
+        return urlparse(url).path
+
+    def get_latest_chapter_url(self, soup: bs4.BeautifulSoup) -> Optional[str]:
+        """
+        Finds the latest chapter URL from the parsed HTML content.
+
+        Args:
+            soup (bs4.BeautifulSoup): The BeautifulSoup object containing the parsed HTML.
+
+        Returns:
+            Optional[str]: The full URL of the latest chapter or None if not found.
+        """
+        # Assuming the first <a> tag in the <tbody> is the latest chapter
+        tbody = soup.find('tbody')
+        if tbody:
+            chapter_link = tbody.find('a', href=True)
+            if chapter_link and 'href' in chapter_link.attrs:
+                # Construct the full URL using urljoin to handle relative URLs properly
+                return urljoin(self.base_url, chapter_link['href'])
+        return None
+
+    def extract_thumbnail(self, soup: bs4.BeautifulSoup, manga_path: str) -> str:
+        """
+        Finds the manga thumbnail URL by first locating the specific href that
+        matches the manga_path + "/covers", then extracts the thumbnail src.
+
+        Args:
+            soup (bs4.BeautifulSoup): The BeautifulSoup object containing the parsed HTML.
+            manga_path (str): The path of the manga used to construct the target href.
+
+        Returns:
+            str: The URL of the manga thumbnail or an error message if not found.
+        """
+        # Construct the target href we're looking for
+        target_href = manga_path + "/covers"
+
+        # Find the <a> tag with the specific href
+        cover_link = soup.find('a', href=target_href)
+        if cover_link:
+            # Within the <a> tag's context, find the <img> tag
+            img_tag = cover_link.find_next('img')
+            if img_tag and 'src' in img_tag.attrs:
+                # Return the src attribute of the <img> tag
+                return img_tag['src']
+
+        return "Thumbnail not found"
+
+    def create_record(self, url: str) -> Dict[str, Union[str, int]]:
+        """
+        Creates a record of manga details from the given URL.
+
+        Args:
+            url (str): The URL of the manga page.
+
+        Returns:
+            Dict[str, Union[str, int]]: A dictionary containing manga details.
+        """
+        response = requests.get(url)
+        if response.status_code == 200:
+            soup = bs4.BeautifulSoup(response.content, 'html.parser')
+            manga_name = self.extract_name(url)
+            manga_path = self.extract_manga_path(url)
+            chapter_url = self.get_latest_chapter_url(soup)
+            manga_thumbnail_url = self.extract_thumbnail(soup)
+            chapter_number = self.get_chapter_number(chapter_url) if chapter_url else 0
+
+            record = {
+                "manga_name": manga_name,
+                "manga_path": manga_path,
+                "chapter_url": chapter_url,
+                "date_checked": time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())),
+                "number_of_pages": 0,  # Implement extract_chapter_length for actual length
+                "chapter_url_status": response.status_code,
+                "manga_thumbnail_url": manga_thumbnail_url,
+                "website_url": self.base_url,
+                "chapter_number": chapter_number,
+            }
+            return record
+        else:
+            return {"error": f"Failed to retrieve webpage, status code: {response.status_code}"}
+
+    def get_chapter_number(self, url: str) -> int:
+        """
+        Extracts the chapter number from the chapter URL.
+
+        The chapter number is expected to be between two hyphens, following the
+        word 'chapter' and before the last part of the URL, which can vary (e.g., 'en').
+
+        Args:
+            url (str): The URL of the chapter.
+
+        Returns:
+            int: The chapter number or 0 if not found.
+        """
+        # The regex captures digits (\d+) that follow 'chapter-' and precede
+        # a hyphen. This assumes the chapter number is followed by a hyphen and some text.
+        match = re.search(r'chapter-(\d+)-[^-]+$', url)
+        if match:
+            return int(match.group(1))
+        return 0
+
 
 ## Example usage
 # manga_list = {
