@@ -10,7 +10,9 @@ CREATE TABLE website_table (
 CREATE TABLE manga_table (
     -- Table that maps a manga name to an ID, e.g. 1, One Piece
     manga_id UUID PRIMARY KEY,
-    manga_name VARCHAR(255)
+    userid UUID REFERENCES user_table(userid),
+    manga_name VARCHAR(255),
+    UNIQUE(userid, manga_name)
 );
 
 CREATE TABLE manga_path_table (
@@ -20,7 +22,8 @@ CREATE TABLE manga_path_table (
     manga_path_id UUID PRIMARY KEY,
     manga_id UUID REFERENCES manga_table(manga_id),
     website_id UUID REFERENCES website_table(website_id),
-    manga_path VARCHAR(255)
+    manga_path VARCHAR(255),
+    UNIQUE(manga_id, website_id)
 );
 
 CREATE TABLE manga_genre_table (
@@ -51,7 +54,8 @@ CREATE TABLE manga_chapter_url_store (
     number_of_pages INTEGER,
     chapter_url_status VARCHAR(100),
     chapter_number INT,
-    date_checked TIMESTAMP
+    date_checked TIMESTAMP,
+    UNIQUE(manga_id, chapter_url) -- Ensure unique chapter URLs per manga
 );
 
 CREATE TABLE manga_thumbnail (
@@ -61,5 +65,6 @@ CREATE TABLE manga_thumbnail (
     manga_id UUID REFERENCES manga_table(manga_id),
     website_id UUID REFERENCES website_table(website_id),
     manga_path_id UUID REFERENCES manga_path_table(manga_path_id),
-    thumbnail_url VARCHAR(255)
+    thumbnail_url VARCHAR(255),
+    UNIQUE(manga_id, website_id) -- Ensure unique thumbnails per manga and website
 );

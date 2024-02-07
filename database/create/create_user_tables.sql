@@ -28,3 +28,11 @@ CREATE TABLE user_reading_history (
     pages_read INTEGER
 );
 
+CREATE TABLE user_manga_follows (
+    user_manga_follow_id UUID PRIMARY KEY,
+    userid UUID REFERENCES user_table(userid),
+    manga_id UUID REFERENCES manga_table(manga_id),
+    date_followed TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+

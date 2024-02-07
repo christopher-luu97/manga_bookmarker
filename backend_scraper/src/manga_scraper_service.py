@@ -169,16 +169,15 @@ class MangaScraperService:
                                 to be deleted. Each dictionary includes the 'id' of the manga and the 'error' message.
         """
 
-        delete_list = [item for item in manga_list.manga_records if item.status.lower() == "delete"]
+        delete_list = [item for item in manga_list if item.status.lower() == "delete"]
         error_list = []
-        if len(delete_list) >0: # Only run if the data exists
+        if delete_list:
             ms_db = MangaScraperDB()
-            # We know the data can be deleted because the data is grabbed from the backend to be presented to the frontend
-            # This frontend data is then sent as part of the response when updating records
             for item in delete_list:
                 try:
                     with ms_db.conn.cursor() as cur:
-                        cur.execute("CALL delete_manga_record(%s)", (item.id,))
+                        # Now passing both user_id and manga_id to the stored procedure
+                        cur.execute("CALL delete_manga_record(%s, %s)", (user_id, item.id))
                         ms_db.conn.commit()
                 except Exception as e:
                     error_list.append({"id": item.id, "error": str(e)})

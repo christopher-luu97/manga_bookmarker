@@ -1,8 +1,12 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import OAuth2PasswordRequestForm
 from typing import List, Dict, Any
+from datetime import timedelta
 from src.manga_scraper_service import MangaScraperService
 from data_models.manga_records import MangaList
+from src.auth import create_access_token, get_current_user, oauth2_scheme, TokenData
+
 
 app = FastAPI()
 
@@ -18,6 +22,58 @@ app.add_middleware(
 
 # Instantiate MangaScraperService
 manga_scraper_service = MangaScraperService()
+
+# Dummy database of users
+fake_users_db = {
+    "johndoe": {
+        "username": "johndoe",
+        "full_name": "John Doe",
+        "email": "johndoe@example.com",
+        "hashed_password": "fakehashedsecret",
+        "disabled": False,
+    }
+}
+
+def fake_hash_password(password: str):
+    return "fakehashed" + password
+
+@app.post("/token")
+async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()) -> Dict[str, str]:
+    """
+    Authenticate users and return a JWT token.
+
+    Args:
+        form_data (OAuth2PasswordRequestForm): User login credentials.
+
+    Returns:
+        Dict[str, str]: Access token and token type.
+    """
+    # Authentication logic here
+    # This is a simplified placeholder logic
+
+    user_dict = fake_users_db.get(form_data.username)
+    if not user_dict:
+        raise HTTPException(status_code=400, detail="Incorrect username or password")
+    user_id = user_dict.get("user_id")  # Assuming you have user_id stored in your fake user DB
+    access_token_expires = timedelta(minutes=30) # set 30
+    access_token = create_access_token(
+        data={"sub": form_data.username, "user_id": user_id}, expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
+
+# Now let's adjust the endpoints to require authentication
+@app.get("/users/me")
+async def read_users_me(current_user: TokenData = Depends(get_current_user)) -> Dict[str, Any]:
+    """
+    Get current user profile.
+
+    Args:
+        current_user (TokenData): Current user's token data, injected by dependency.
+
+    Returns:
+        Dict[str, Any]: User information.
+    """
+    return {"username": current_user.username, "user_id": current_user.user_id}
 
 @app.post("/insert_record")
 async def update_manga_list(manga_list: MangaList):
