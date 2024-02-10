@@ -15,7 +15,7 @@ class MangaScraperDB:
     """
     def __init__(self):
         try:
-            creds_path = os.path.join(os.getcwd(),"src/secrets/db_config.json")
+            creds_path = os.path.join(os.getcwd(),"src/secrets/db_config_prod.json")
             credentials = self.read_db_credentials(creds_path) ## To change into environ reading
             self.conn = psycopg2.connect(
                 host= credentials["host"],

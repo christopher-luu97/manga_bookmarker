@@ -1,3 +1,5 @@
 *.pycache
 *.ipynb
 **/__pycache__
+
+secrets/
