@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from typing import List, Dict, Any
@@ -60,6 +60,21 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
         data={"sub": form_data.username, "user_id": user_id}, expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer"}
+
+@app.post("/register/")
+def register_user(username: str = Body(...), password: str = Body(...), email: str = Body(...)):
+    user = manga_scraper_service.create_user(username, password, email)
+    if user:
+        return {"message": "User created successfully.", "user": user}
+    raise HTTPException(status_code=400, detail="Error creating user.")
+
+@app.post("/login/")
+def login(username: str = Body(...), password: str = Body(...)):
+    if manga_scraper_service.authenticate_user(username, password):
+        # Create token
+        access_token = create_access_token(data={"sub": username})
+        return {"access_token": access_token, "token_type": "bearer"}
+    raise HTTPException(status_code=400, detail="Incorrect username or password")
 
 # Now let's adjust the endpoints to require authentication
 @app.get("/users/me")

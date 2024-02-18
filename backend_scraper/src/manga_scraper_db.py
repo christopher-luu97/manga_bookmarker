@@ -4,6 +4,7 @@ import json
 import re
 import jellyfish # For string distance matching. See: https://github.com/jamesturk/jellyfish
 import os
+import bcrypt
 from psycopg2 import OperationalError
 from datetime import datetime
 from typing import Dict, List, Any
@@ -60,6 +61,52 @@ class MangaScraperDB:
             return match.group(1) 
         else:
             return None
+        
+    def create_user(self, username: str, password: str, email: str):
+        """
+        Create a new user with a hashed password and store it in the database.
+
+        Args:
+            username (str): The user's username.
+            password (str): The user's password.
+            email (str): The user's email.
+        """
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+        hashed_password_str = hashed_password.decode('utf-8') if isinstance(hashed_password, bytes) else hashed_password
+        user_id = str(uuid.uuid4())
+        create_date = datetime.now()
+        try:
+            with self.conn.cursor() as cur:
+                cur.execute("CALL createUser(%s, %s, %s, %s, %s)",
+                            (user_id, username, hashed_password_str, email, create_date))
+                self.conn.commit()
+                return {"userid": user_id, "username": username, "email": email}
+        except Exception as e:
+            print(f"Error creating user: {e}")
+            self.conn.rollback()
+            return None
+
+    def authenticate_user(self, username: str, password: str):
+        """
+        Authenticate a user by their username and password.
+
+        Args:
+            username (str): The user's username.
+            password (str): The user's password.
+
+        Returns:
+            bool: True if authentication is successful, False otherwise.
+        """
+        try:
+            with self.conn.cursor() as cur:
+                cur.execute("SELECT * FROM get_user_hash(%s)", (username,))
+                user_record = cur.fetchone()
+                if user_record:
+                    return bcrypt.checkpw(password.encode('utf-8'), user_record[0].encode('utf-8'))
+                return False
+        except Exception as e:
+            print(f"Error authenticating user: {e}")
+            return False
 
     def insert_website(self, website_url:str, website_status:str):
         """

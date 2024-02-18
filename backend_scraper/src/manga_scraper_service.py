@@ -7,6 +7,27 @@ class MangaScraperService:
     def __init__(self):
         self.ms_db = MangaScraperDB()
 
+    def create_user(self, username: str, password: str, email: str):
+        """
+        Creates a new user and stores it in the database.
+
+        Args:
+            username (str): Username of the new user.
+            password (str): Password for the new user.
+            email (str): Email of the new user.
+        """
+        return self.ms_db.create_user(username, password, email)
+
+    def authenticate_user(self, username: str, password: str):
+        """
+        Authenticates a user by their username and password.
+
+        Args:
+            username (str): Username of the user trying to log in.
+            password (str): Password of the user trying to log in.
+        """
+        return self.ms_db.authenticate_user(username, password)
+
     def scrape_record(self, manga_list: MangaList) -> Tuple[List[Dict[str, Any]], List[Dict[str, str]]]:
         """
         Runner function to scrape and do all the backend stuff
