@@ -1,4 +1,5 @@
 CREATE OR REPLACE PROCEDURE insert_manga_chapter_url_store(
+    p_userid UUID,
     p_manga_chapter_url_id UUID,
     p_manga_id UUID,
     p_website_id UUID,
@@ -12,6 +13,14 @@ CREATE OR REPLACE PROCEDURE insert_manga_chapter_url_store(
 LANGUAGE plpgsql
 AS $$
 BEGIN
+    -- First, check if the manga_id belongs to the user
+    IF NOT EXISTS (
+        SELECT 1 FROM manga_table
+        WHERE manga_id = p_manga_id AND userid = p_userid
+    ) THEN
+        RAISE EXCEPTION 'User does not own the specified manga.';
+    END IF;
+
     -- Check if the record already exists
     IF EXISTS (
         SELECT 1 FROM manga_chapter_url_store

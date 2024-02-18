@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION get_manga_data()
+CREATE OR REPLACE FUNCTION get_manga_data(input_userid UUID)
 RETURNS TABLE(
     id UUID,
     title VARCHAR,
@@ -21,6 +21,7 @@ BEGIN
     FROM 
         manga_table m
         JOIN manga_chapter_url_store mc ON m.manga_id = mc.manga_id
-        LEFT JOIN manga_thumbnail mt ON m.manga_id = mt.manga_id;
+        LEFT JOIN manga_thumbnail mt ON m.manga_id = mt.manga_id
+    WHERE m.userid = input_userid;
 END;
 $$ LANGUAGE plpgsql;

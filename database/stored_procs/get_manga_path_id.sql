@@ -1,13 +1,21 @@
-CREATE OR REPLACE FUNCTION get_manga_path_id(
-    input_manga_id UUID,
-    input_website_id UUID,
-    input_manga_path TEXT
-) RETURNS UUID AS $$
+CREATE OR REPLACE FUNCTION get_website_paths(input_userid UUID)
+RETURNS TABLE(
+    manga_path_id UUID,
+    manga_id UUID,
+    manga_name VARCHAR,
+    full_path VARCHAR
+) AS $$
 BEGIN
-    RETURN (SELECT manga_path_id 
-            FROM manga_path_table
-            WHERE manga_id = input_manga_id 
-            AND website_id = input_website_id 
-            AND manga_path = input_manga_path);
+    RETURN QUERY
+    SELECT 
+        mp.manga_path_id,
+        mp.manga_id,
+        mt.manga_name,
+        CAST(wt.website_url || mp.manga_path AS VARCHAR) AS full_path
+    FROM 
+        manga_path_table mp
+        INNER JOIN website_table wt ON mp.website_id = wt.website_id
+        INNER JOIN manga_table mt ON mp.manga_id = mt.manga_id
+    WHERE mt.userid = input_userid;
 END;
 $$ LANGUAGE plpgsql;
